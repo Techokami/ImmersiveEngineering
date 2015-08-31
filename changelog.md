@@ -1,4 +1,65 @@
-#####Version 0.5.0
+#####Version 0.5.4 - BUILT
+- added Concrete and Concrete Tile
+- fixed a Nullpointer Exception in the Arc Furnace, triggered when a recipe without slag is processed
+- fixed Minetweaker integration for Squeezer and Fermenter
+- fixed CokeOven and BlastFurnace dropping an extra block when broken
+- removed client update calls when machines receive RF. This might have been a cause of lag, but also might have consequences for WAILA
+- fixed a typo in an oredict name (thanks xbony2)
+- fixed item insertion and extraction for Squeezer and Fermenter
+- fixed item instert for coke oven
+- added Silver Bullets
+- added another saving hook to (hopefully) fix the issue of disappearing wires
+- Oblivion
+
+
+#####Version 0.5.3.2 - BUILT
+- fixed raytracing on HV relays (thanks cobra)
+- updated zh_CN.lang
+- fixed dupebug with blueprints (thanks malte0811)
+- fixed tooltips rendering below text (thanks UnwrittenFun)
+- introduced mod-priority system, allowing users to configure which mod they'd like the ores the excavator spits out to be from
+- fixed Excavator's chance system for good, hopefully
+- added blacklist for dimension IDs, rather than restricting IE ores to the overworld
+- added a config to force-enable the crushing of ores with the Engineer's Hammer
+- added Minetweaker support for the Arc Furnace
+- fixed the appearance update of the Arc Furnace, even when it's shut off by redstone
+- moved coke blocks, coke oven bricks, blast furnace bricks and hempcrete to a separate block class to allow for multiparts and carpenters blocks
+- Arc Furnace should respect the stacksize limit for outputs now
+- fixed a rare NEI crash
+- fixed DenseOres not registering for the crusher
+- changed internal recipe handling of fermenter and squeezer
+- made changes to the lightning rod, improving its chances of getting hit
+- fixed crop growth display for WAILA
+- fixed extraction of items from Arc Furnace
+- fixed derpy crafting-navigation-arrows in manual
+- added metal dusts smelting in the Arc Furnace
+
+
+#####Version 0.5.2 - BUILT
+- fixed boundingboxes on slabs
+- fixed shift-clicking items in the arc furnace
+- fixed Arc Furnace structure + collision
+- fixed broken Blueprint crafting
+- fixed Arc Furnace not updating its electrodes when shut off by redstone
+- fixed Raytracing of connectors allowing for invalid connections
+- fixed placement issues of connectors replacing blocks and hovering in the air
+- added localization for IE villager
+- attempted to fix blueprints spawning as dungeon loot
+- disabled EE3 compat module till I can make it work right
+
+
+#####Version 0.5.1 - BUILT
+- removed OreDict tooltip and moved tooltips to clientside-only
+- fixed degrading electrodes in unpowered Arc Furnace
+- added additional bounding box blocks to Arc Furnace, will require the furnace to be rebuilt
+- fixed Electrodes not rendering
+- removed Arc Furnace from creative tab (users are a bit dense >_>)
+- fixed slabs not placing against doubleslabs
+- fixed Villager selling the wrong wire
+- fixed steel not being craftable into blocks, nuggets and slabs
+
+
+#####Version 0.5.0 - BUILT
 - added Arc Furnace! Yes, it's a thing now!
 - added metal slabs
 - added Blueprint crafting. This will be used for bullets and other things in future
@@ -6,7 +67,9 @@
 - added Engineer Villager to sell IE items
 - added metal nuggets
 - redid API stuff. Addons might break
+- changed crusher API, allowing for multiple secondary outputs, will probably break AOBD
 - changed OreDict handling in recipes. Should improve performance
+- changed crusher to build most Ore->Dust & Ingot->Dust recipes dynamically
 - added a world saving hook in the hopes of fixing that issue of wires vanishing on world reload
 - moved Workbench back to TESR because of derpy lighting
 - fixed critical bug with revolvers
@@ -28,8 +91,15 @@
 - fixed BlastFurnace gui opening clientside
 - added another NPE check to wire rendering
 - fixed TCon interaction
+- fixed BlastFurnace glitch of running out of fuel before finishing a stack of iron
+- moved most recipe additions of IE to its own class
+- fixed revolver render to finally show the internal parts of the electrodes
+- allowed placing of ladders/torches/other things on certain parts of the multiblocks
+- extended GregTech support to include most ores, also possibly fixed energy transport
+- fixed revolver render to build correctly for flavour-linked render additions
 
 
+==============
 ##### 0.4 VERSIONS ######
 ==============
 #####Version 0.4.4 - BUILT
@@ -104,6 +174,7 @@
 - fixed excavator being unlimited for negative numbers
 
 
+==============
 ##### 0.3 VERSIONS ######
 ==============
 #####Version 0.3.3 - BUILT
@@ -162,6 +233,7 @@
 - possibly fixed the weird percentages on minerals 
 
 
+==============
 ##### 0.2 VERSIONS ######
 ==============
 #####Version 0.2.4 - BUILT
@@ -217,6 +289,7 @@
 - Added AquaTweaks compat
 
 
+==============
 ##### 0.1 VERSIONS ######
 ==============
 #####Version 0.1.16 - BUILT

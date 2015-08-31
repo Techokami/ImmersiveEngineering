@@ -1,5 +1,7 @@
 package blusunrize.immersiveengineering.common.blocks.multiblocks;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -19,18 +21,34 @@ public class MultiblockBlastFurnace implements IMultiblock
 		for(int h=0;h<3;h++)
 			for(int l=0;l<3;l++)
 				for(int w=0;w<3;w++)
-					structure[h][l][w]=new ItemStack(IEContent.blockStoneDevice,1,2);
+					structure[h][l][w]=new ItemStack(IEContent.blockStoneDecoration,1,2);
 	}
 	@Override
 	public ItemStack[][][] getStructureManual()
 	{
 		return structure;
 	}
+	@Override
+	public boolean overwriteBlockRender(ItemStack stack)
+	{
+		return false;
+	}
+	@Override
+	@SideOnly(Side.CLIENT)
+	public boolean canRenderFormedStructure()
+	{
+		return false;
+	}
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void renderFormedStructure()
+	{
+	}
 	
 	@Override
 	public boolean isBlockTrigger(Block b, int meta)
 	{
-		return b==IEContent.blockStoneDevice && (meta==2);
+		return b==IEContent.blockStoneDecoration && (meta==2);
 	}
 
 	@Override
@@ -45,19 +63,21 @@ public class MultiblockBlastFurnace implements IMultiblock
 		for(int yy=-1;yy<=1;yy++)
 			for(int xx=xMin;xx<=xMax;xx++)
 				for(int zz=zMin;zz<=zMax;zz++)
-					if((yy!=0||xx!=0||zz!=0) && !(world.getTileEntity(x+xx, y+yy, z+zz) instanceof TileEntityBlastFurnace && !((TileEntityBlastFurnace)world.getTileEntity(x+xx, y+yy, z+zz)).formed))
+					if((yy!=0||xx!=0||zz!=0) && (!world.getBlock(x+xx,y+yy,z+zz).equals(IEContent.blockStoneDecoration) || world.getBlockMetadata(x+xx,y+yy,z+zz)!=2))
 						return false;
 
 		for(int yy=-1;yy<=1;yy++)
 			for(int xx=xMin;xx<=xMax;xx++)
 				for(int zz=zMin;zz<=zMax;zz++)
 				{
-					((TileEntityBlastFurnace)world.getTileEntity(x+xx, y+yy, z+zz)).offset=new int[]{xx,yy,zz};
-					((TileEntityBlastFurnace)world.getTileEntity(x+xx, y+yy, z+zz)).facing=f;
-					((TileEntityBlastFurnace)world.getTileEntity(x+xx, y+yy, z+zz)).formed=true;
-					world.getTileEntity(x+xx, y+yy, z+zz).markDirty();
-					world.markBlockForUpdate(x+xx,y+yy,z+zz);
-					world.addBlockEvent(x+xx, y+yy, z+zz, IEContent.blockStoneDevice, 0,1);
+					world.setBlock(x+xx, y+yy, z+zz, IEContent.blockStoneDevice, 2, 0x3);
+					if(world.getTileEntity(x+xx, y+yy, z+zz) instanceof TileEntityBlastFurnace)
+					{
+						((TileEntityBlastFurnace)world.getTileEntity(x+xx, y+yy, z+zz)).offset=new int[]{xx,yy,zz};
+						((TileEntityBlastFurnace)world.getTileEntity(x+xx, y+yy, z+zz)).facing=f;
+						((TileEntityBlastFurnace)world.getTileEntity(x+xx, y+yy, z+zz)).formed=true;
+						world.getTileEntity(x+xx, y+yy, z+zz).markDirty();
+					}
 				}
 		return true;
 	}
@@ -65,6 +85,11 @@ public class MultiblockBlastFurnace implements IMultiblock
 	@Override
 	public ItemStack[] getTotalMaterials()
 	{
-		return new ItemStack[]{new ItemStack(IEContent.blockStoneDevice,27,2)};
+		return new ItemStack[]{new ItemStack(IEContent.blockStoneDecoration,27,2)};
+	}
+	@Override
+	public float getManualScale()
+	{
+		return 16;
 	}
 }

@@ -12,6 +12,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
@@ -19,18 +20,23 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import blusunrize.immersiveengineering.client.render.BlockRenderMetalDevices2;
 import blusunrize.immersiveengineering.common.blocks.BlockIEBase;
+import blusunrize.immersiveengineering.common.util.Lib;
+import blusunrize.immersiveengineering.common.util.Utils;
 import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 @Optional.Interface(iface = "blusunrize.aquatweaks.api.IAquaConnectable", modid = "AquaTweaks")
 public class BlockMetalDevices2 extends BlockIEBase implements blusunrize.aquatweaks.api.IAquaConnectable
 {
-	public static int META_breakerSwitch=0;
-	public static int META_skycrateDispenser=1;
+	public static final int META_breakerSwitch=0;
+	public static final int META_skycrateDispenser=1;
+	public static final int META_energyMeter=2;
 
 	public BlockMetalDevices2()
 	{
 		super("metalDevice2", Material.iron, 1, ItemBlockMetalDevices2.class,
-				"breakerSwitch","skycrateDispenser");
+				"breakerSwitch","skycrateDispenser","energyMeter");
 		setHardness(3.0F);
 		setResistance(15.0F);
 	}
@@ -62,23 +68,28 @@ public class BlockMetalDevices2 extends BlockIEBase implements blusunrize.aquatw
 	public void getSubBlocks(Item item, CreativeTabs tab, List list)
 	{
 		list.add(new ItemStack(item, 1, 0));
-//		for(int i=0; i<subNames.length; i++)
-//		{
-//			list.add(new ItemStack(item, 1, i));
-//		}
+		list.add(new ItemStack(item, 1, 2));
+		//		for(int i=0; i<subNames.length; i++)
+		//		{
+		//			list.add(new ItemStack(item, 1, i));
+		//		}
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public void registerBlockIcons(IIconRegister iconRegister)
 	{
-		this.icons[META_breakerSwitch][0] = iconRegister.registerIcon("immersiveEngineering:metal2_breakerSwitch");
+		for(int i=0; i<this.subNames.length; i++)
+			this.icons[i][0] = iconRegister.registerIcon("immersiveEngineering:metal2_"+this.subNames[i]);
 	}
 	@Override
+	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side)
 	{
 		return super.getIcon(world, x, y, z, side);
 	}
 	@Override
+	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(int side, int meta)
 	{
 		return super.getIcon(side, meta);
@@ -102,8 +113,21 @@ public class BlockMetalDevices2 extends BlockIEBase implements blusunrize.aquatw
 		{
 			if(!world.isRemote)
 			{
-				((TileEntityBreakerSwitch)world.getTileEntity(x, y, z)).toggle();
-				world.getTileEntity(x, y, z).markDirty();
+				if(Utils.isHammer(player.getCurrentEquippedItem()))
+				{
+					((TileEntityBreakerSwitch)world.getTileEntity(x, y, z)).inverted = !((TileEntityBreakerSwitch)world.getTileEntity(x, y, z)).inverted;
+					player.addChatMessage(new ChatComponentTranslation(Lib.CHAT_INFO+ (((TileEntityBreakerSwitch)world.getTileEntity(x, y, z)).inverted?"invertedOn":"invertedOff")));
+					world.getTileEntity(x, y, z).markDirty();
+				}
+				else
+				{
+					((TileEntityBreakerSwitch)world.getTileEntity(x, y, z)).toggle();
+					world.getTileEntity(x, y, z).markDirty();
+				}
+				world.notifyBlocksOfNeighborChange(x, y, z, this);
+				for(ForgeDirection fd:  ForgeDirection.VALID_DIRECTIONS)
+					world.notifyBlocksOfNeighborChange(x+fd.offsetX, y+fd.offsetY, z+fd.offsetZ, this);
+
 				world.func_147451_t(x, y, z);
 			}
 			return true;
@@ -120,11 +144,11 @@ public class BlockMetalDevices2 extends BlockIEBase implements blusunrize.aquatw
 			int f = ((TileEntityBreakerSwitch)world.getTileEntity(x, y, z)).facing;
 			int side = ((TileEntityBreakerSwitch)world.getTileEntity(x, y, z)).sideAttached;
 			if(side==0)
-				this.setBlockBounds(f<4?.25f:f==5?.8125f:0, .25f, f>3?.25f:f==3?.8125f:0, f<4?.75f:f==4?.1875f:1,.8125f,f>3?.75f:f==2?.1875f:1);
+				this.setBlockBounds(f<4?.25f:f==5?.75f:0, .1875f, f>3?.25f:f==3?.75f:0, f<4?.75f:f==4?.25f:1,.8125f,f>3?.75f:f==2?.25f:1);
 			else if(side==1)
-				this.setBlockBounds(f==4?.1875f:.25f,0,f==2?.1875f:.25f, f==5?.8125f:.75f,.1875f,f==3?.8125f:.75f);
+				this.setBlockBounds(f>=4?.1875f:.25f,0,f<=3?.1875f:.25f, f>=4?.8125f:.75f,.25f,f<=3?.8125f:.75f);
 			else
-				this.setBlockBounds(f==4?.1875f:.25f,.8125f,f==2?.1875f:.25f, f==5?.8125f:.75f,1,f==3?.8125f:.75f);
+				this.setBlockBounds(f>=4?.1875f:.25f,.75f,f<=3?.1875f:.25f, f>=4?.8125f:.75f,1,f<=3?.8125f:.75f);
 		}
 		else
 			this.setBlockBounds(0,0,0,1,1,1);
@@ -145,8 +169,8 @@ public class BlockMetalDevices2 extends BlockIEBase implements blusunrize.aquatw
 	@Override
 	public boolean isSideSolid(IBlockAccess world, int x, int y, int z, ForgeDirection side)
 	{
-//		int meta = world.getBlockMetadata(x, y, z);
-		return false;
+		//		int meta = world.getBlockMetadata(x, y, z);
+		return true;
 	}
 
 	@Override
@@ -154,10 +178,12 @@ public class BlockMetalDevices2 extends BlockIEBase implements blusunrize.aquatw
 	{
 		switch(meta)
 		{
-		case 0://0 breakerSwitch
+		case META_breakerSwitch:
 			return new TileEntityBreakerSwitch();
-		case 1://1 skycrateDispenser
+		case META_skycrateDispenser:
 			return new TileEntitySkycrateDispenser();
+		case META_energyMeter:
+			return new TileEntityEnergyMeter();
 		}
 		return null;
 	}
@@ -171,6 +197,42 @@ public class BlockMetalDevices2 extends BlockIEBase implements blusunrize.aquatw
 	@Override
 	public void onNeighborBlockChange(World world, int x, int y, int z, Block nbid)
 	{
+	}
+
+	@Override
+	public int isProvidingWeakPower(IBlockAccess world, int x, int y, int z, int side)
+	{
+		if(world.getTileEntity(x, y, z) instanceof TileEntityBreakerSwitch)
+		{
+			TileEntityBreakerSwitch breaker = ((TileEntityBreakerSwitch)world.getTileEntity(x, y, z));
+			boolean power = (breaker.active&&!breaker.inverted) || (!breaker.active&&breaker.inverted);
+			return power?15:0;
+		}
+		return 0;
+	}
+	@Override
+	public int isProvidingStrongPower(IBlockAccess world, int x, int y, int z, int side)
+	{
+		if(world.getTileEntity(x, y, z) instanceof TileEntityBreakerSwitch)
+		{
+			TileEntityBreakerSwitch breaker = ((TileEntityBreakerSwitch)world.getTileEntity(x, y, z));
+			int powerSide = breaker.sideAttached>0?breaker.sideAttached-1:breaker.facing;
+			boolean power = (breaker.active&&!breaker.inverted) || (!breaker.active&&breaker.inverted);
+			return power&&ForgeDirection.OPPOSITES[side]==powerSide?15:0;
+		}
+		return 0;
+	}
+	@Override
+	public boolean canProvidePower()
+	{
+		return true;
+	}
+	@Override
+	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side)
+	{
+		if(world.getBlockMetadata(x, y, z)==META_breakerSwitch)
+			return super.canConnectRedstone(world, x, y, z, side);
+		return false;
 	}
 
 

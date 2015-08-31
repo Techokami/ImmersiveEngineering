@@ -13,18 +13,19 @@ public class Config
 	public static HashMap<String, Double> config_double = new HashMap();
 	public static HashMap<String, double[]> config_doubleArray = new HashMap();
 	public static HashMap<String, int[]> config_intArray = new HashMap();
+	public static HashMap<String, String[]> config_stringArray = new HashMap();
 
 	public static void init(FMLPreInitializationEvent event)
 	{
 		Configuration config = new Configuration(event.getSuggestedConfigurationFile());
 		config.load();
 
-		Property cableProperty = config.get("General", "Cable transfer rates", new int[]{256,1024,4096,0,0,0}, "The transfer rates in RF/t for the cable tiers (copper, electrum, HV, Strutural Rope & Cable(no transfer) )");
+		Property cableProperty = config.get("General", "Cable transfer rates", new int[]{256,1024,4096,0,0,0}, "The transfer rates in RF/t for the cable tiers (copper, electrum, HV, Structural Rope & Cable(no transfer) )");
 		if(cableProperty.getIntList().length<5)
 			cableProperty.set(new int[]{256,1024,4096,0,0});
 		setIntArray("cableTransferRate", cableProperty.getIntList());
 
-		cableProperty = config.get("General", "Cable loss", new double[]{.05,.025,.1,1,1,1}, "The percentage of power lost every 16 blocks of distance for the cable tiers (copper, electrum, HV, Strutural Rope & Cable(no transfer) )");
+		cableProperty = config.get("General", "Cable loss", new double[]{.05,.025,.1,1,1,1}, "The percentage of power lost every 16 blocks of distance for the cable tiers (copper, electrum, HV, Structural Rope & Cable(no transfer) )");
 		if(cableProperty.getDoubleList().length<5)
 			cableProperty.set(new double[]{.05,.025,.1,1,1});
 		setDoubleArray("cableLossRatio", cableProperty.getDoubleList());
@@ -43,8 +44,10 @@ public class Config
 		setBoolean("increasedRenderboxes", config.get("General", "Increased Renderboxes", true, "By default all devices that accept cables have increased renderbounds to show cables even if the block itself is not in view. Disabling this reduces them to their minimum sizes, which might improve FPS on low-power PCs").getBoolean());
 		setBoolean("colourblindSupport", config.get("General", "ColourblindSupport", false, "Support for colourblind people, gives a text-based output on capacitor sides").getBoolean());
 		setDouble("increasedTileRenderdistance", config.get("General", "Increased Tile Renderdistance", 1.5, "Increase the distance at which certain TileEntities (specifically windmills) are still visible. This is a modifier, so set it to 1 for default render distance, to 2 for doubled distance and so on.").getDouble());
-		setBoolean("disableHammerCrushing", config.get("General", "Disable Hammer Crushing ", false, "Set this to true to completely disable the ore- and ingot-crushign recipes with the Engineers Hammer. Note that some of these disable automatically when other mods add the relevant dust (and by that probably a way to get them)").getBoolean());
-		
+		setBoolean("disableHammerCrushing", config.get("General", "Disable Hammer Crushing", false, "Set this to true to completely disable the ore- and ingot-crushing recipes with the Engineers Hammer. Note that some of these disable automatically when other mods add the relevant dust (and by that probably a way to get them)").getBoolean());
+		setBoolean("forceHammerCrushing", config.get("General", "Force-Enable Hammer Crushing", false, "Set this to true to forefully enable the ore- and ingot-crushing recipes with the Engineers Hammer. This will override the disabling.").getBoolean());
+		setStringArray("preferredOres", config.get("General", "Preferred Ores", new String[]{"ImmersiveEngineering","ThermalFoundation"}, "A list of preferred Mod IDs that results of IE processes should stem from, aka which mod you want the copper to come from. This affects the ores dug by the excavator, as well as those crushing recipes that don't have associated IE items. This list is in oreder of priority.").getStringList());
+
 		setBoolean("ic2compat", config.get("General", "IC2 Compatability", true, "Set this to false to prevent wires from accepting and outputting EU").getBoolean());
 		setBoolean("gregtechcompat", config.get("General", "GregTech Compatability", true, "Set this to false to prevent wires from outputting GregTech EU").getBoolean());
 		setInt("euConversion", config.get("General", "EU Conversion", 4, "The amount of RF that equal 1 EU. 4 by default, so 4RF == 1EU and .25EU == 1RF").getInt());
@@ -81,11 +84,12 @@ public class Config
 		setBoolean("excavator_particles", config.get("Machines", "Excavator: Particles", true, "Set this to false to disable the ridiculous amounts of particles the Excavator spawns").getBoolean());
 		setInt("excavator_depletion", config.get("Machines", "Excavator: Mineral Depletion", 76800, "The maximum amount of yield one can get out of a chunk with the excavator. Set a number smaller than zero to make it infinite").getInt());
 		setInt("excavator_depletion_days", getInt("excavator_depletion")*45/24000);
-
+		
 		setInt("coredrill_time", config.get("Machines", "Core Sample Drill: Evaluation Time", 600, "The length in ticks it takes for the Core Sample Drill to figure out which mineral is found in a chunk").getInt());
 		setInt("coredrill_consumption", config.get("Machines", "Core Sample Drill: Consumption", 40, "The RF per tick consumed by the Core Sample Drill").getInt());
 
-		setInt("arcfurnace_electrodeDamage", config.get("Machines", "Arc Furnace: Graphite Electrodes", 96000, "The maximum amount of damage Graphite Electrodes can take. While the furance is working, electrodes sustain 1 damage per tick, so this is effectively the lifetime in ticks. The default value of 96000 makes them last for 8 consecutive ingame days").getInt());
+		setInt("arcfurnace_electrodeDamage", config.get("Machines", "Arc Furnace: Graphite Electrodes", 96000, "The maximum amount of damage Graphite Electrodes can take. While the furnace is working, electrodes sustain 1 damage per tick, so this is effectively the lifetime in ticks. The default value of 96000 makes them last for 8 consecutive ingame days").getInt());
+		setBoolean("arcfurnace_electrodeCrafting", config.get("Machines", "Arc Furnace: Craftable Blueprint", false, "Set this to true to make the blueprint for graphite electrodes craftable in addition to villager/dungeon loot").getBoolean());
 		
 		
 		setIntArray("ore_copper", config.get("OreGen", "Copper", new int[]{8, 40,72, 8,100}, "Generation config for Copper Ore. Parameters: Blocks per vein, lowest possible Y, highest possible Y, veins per chunk, chance for vein to spawn (out of 100). Set vein size to 0 to disable the generation").getIntList());
@@ -93,7 +97,8 @@ public class Config
 		setIntArray("ore_lead", config.get("OreGen", "Lead", new int[]{6,  8,36, 4,100}, "Generation config for Lead Ore. Parameters: Blocks per vein, lowest possible Y, highest possible Y, veins per chunk, chance for vein to spawn (out of 100). Set vein size to 0 to disable the generation").getIntList());
 		setIntArray("ore_silver", config.get("OreGen", "Silver", new int[]{8,  8,40, 4,80}, "Generation config for Silver Ore. Parameters: Blocks per vein, lowest possible Y, highest possible Y, veins per chunk, chance for vein to spawn (out of 100). Set vein size to 0 to disable the generation").getIntList());
 		setIntArray("ore_nickel", config.get("OreGen", "Nickel", new int[]{6,  8,24, 2,100}, "Generation config for Nickel Ore. Parameters: Blocks per vein, lowest possible Y, highest possible Y, veins per chunk, chance for vein to spawn (out of 100). Set vein size to 0 to disable the generation").getIntList());
-
+		setIntArray("oreDimBlacklist", config.get("OreGen", "DimensionBlacklist", new int[]{-1,1}, "A blacklist of dimensions in which IE ores won't spawn. By default this is Nether (-1) and End (1)").getIntList());
+		
 		setBoolean("hardmodeBulletRecipes", config.get("Tools", "Bullets: Hardmode Recipes", false, "Enable this to use the old, harder bullet recipes(require one ingot per bullet)").getBoolean());
 		setDouble("BulletDamage-Casull", config.get("Tools", "BulletDamage-Casull", 7d, "The amount of base damage a Casull Cartridge inflicts").getDouble());
 		setDouble("BulletDamage-AP", config.get("Tools", "BulletDamage-AP", 7d, "The amount of base damage an ArmorPiercing Cartridge inflicts").getDouble());
@@ -102,7 +107,8 @@ public class Config
 		setDouble("BulletDamage-Homing", config.get("Tools", "BulletDamage-Homing", 8d, "The amount of base damage a Homing Cartridge inflicts").getDouble());
 		setDouble("BulletDamage-Wolfpack", config.get("Tools", "BulletDamage-Wolfpack", 6d, "The amount of base damage a Wolfpack Cartridge inflicts").getDouble());
 		setDouble("BulletDamage-WolfpackPart", config.get("Tools", "BulletDamage-WolfpackPart", 4d, "The amount of damage the sub-projectiles of the Wolfpack Cartridge inflict").getDouble());
-		
+		setDouble("BulletDamage-Silver", config.get("Tools", "BulletDamage-Silver", 7d, "The amount of damage a silver bullet inflicts").getDouble());
+				
 
 		//		Property propReGen = config.get("TESTING", "ReGen", false);
 		//		propReGen.set(false);
@@ -156,5 +162,14 @@ public class Config
 	public static int[] getIntArray(String key)
 	{
 		return config_intArray.get(key);
+	}
+
+	public static void setStringArray(String key, String[] dA)
+	{
+		config_stringArray.put(key, dA);
+	}
+	public static String[] getStringArray(String key)
+	{
+		return config_stringArray.get(key);
 	}
 }

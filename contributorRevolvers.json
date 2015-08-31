@@ -20,7 +20,11 @@
 
 {
 "uuid":["c2024e2a-dd76-4bc9-9ea3-b771f18f23b6"],
-"tag":"earthshaker","flavour":"","baseUpgrades":{"melee":10.0},"renderAdditions":[]
+"tag":"earthshaker","flavour":"","baseUpgrades":{"melee":10.0},"renderAdditions":["bayonet_attachment","dev_bayonet"]
+}
+{
+"uuid":["c2024e2a-dd76-4bc9-9ea3-b771f18f23b6","f34afdfb-996b-4020-b8a2-b740e2937b29"],
+"tag":"oblivion","flavour":"","baseUpgrades":{"melee":10.0},"renderAdditions":["bayonet_attachment","dev_bayonet"]
 }
 
 {
@@ -74,12 +78,14 @@
 "uuid":["f34afdfb-996b-4020-b8a2-b740e2937b29",
 "58d506e2-7ee7-4774-8b22-c7a57eda488b",
 "d5d05952-c0fa-46c3-a9ba-0ba1afe30f2b",
-"167a7678-f234-4260-abb9-bd3dd4b5d5ed",
 "9dd0e615-bef1-4038-b9ef-1f3bd429fd26",
 "569eaef5-98ed-4254-8b1e-36d915ca1bbb",
 "b695c134-2fd7-4023-847a-5d991dfbe4f2",
 "c99ce56e-f6ea-4c25-9150-427ef7079dee",
-"2011c5a7-97b6-4cea-8562-05f11ee3929e"
+"2011c5a7-97b6-4cea-8562-05f11ee3929e",
+"9900df69-11bd-4f8a-b1ce-d8f6833853b6",
+"f26600ad-a5eb-4a27-8427-b340293d9f01",
+"2fb3ed59-36cf-4254-a512-5e2c34986829"
 ],
 "tag":"patreonBlu_1","flavour":"","baseUpgrades":{},"renderAdditions":["bayonet_attachment","dev_scope"]
 }

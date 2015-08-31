@@ -158,8 +158,10 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 							ItemStack outputStack = recipe.output;
 							if(outputStack!=null)
 								outputItem(outputStack.copy());
-							if(recipe.secondaryOutput!=null && worldObj.rand.nextFloat()<recipe.secondaryChance)
-								outputItem(recipe.secondaryOutput);
+							if(recipe.secondaryOutput!=null)
+								for(int i=0; i<recipe.secondaryOutput.length; i++)
+									if(worldObj.rand.nextFloat()<recipe.secondaryChance[i])
+										outputItem(recipe.secondaryOutput[i]);
 
 							inputStack.stackSize-= (recipe.input instanceof ItemStack)? ((ItemStack)recipe.input).stackSize: 1;
 							if(inputStack.stackSize>0)
@@ -310,6 +312,7 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 		return AxisAlignedBB.getBoundingBox(xCoord,yCoord,zCoord, xCoord,yCoord,zCoord);
 	}
 	@Override
+    @SideOnly(Side.CLIENT)
 	public double getMaxRenderDistanceSquared()
 	{
 		return super.getMaxRenderDistanceSquared()*Config.getDouble("increasedTileRenderdistance");
@@ -547,7 +550,6 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 			TileEntityCrusher master = master();
 			int rec = master.energyStorage.receiveEnergy(maxReceive, simulate);
 			master.markDirty();
-			worldObj.markBlockForUpdate(master.xCoord, master.yCoord, master.zCoord);
 			return rec;
 		}
 		return 0;

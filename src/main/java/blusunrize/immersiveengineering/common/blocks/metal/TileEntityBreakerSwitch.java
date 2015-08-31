@@ -2,10 +2,10 @@ package blusunrize.immersiveengineering.common.blocks.metal;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Vec3;
-import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
-import blusunrize.immersiveengineering.api.energy.WireType;
-import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
 import blusunrize.immersiveengineering.api.TargetingInfo;
+import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
+import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
+import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.common.blocks.TileEntityImmersiveConnectable;
 import blusunrize.immersiveengineering.common.util.Utils;
 
@@ -15,7 +15,8 @@ public class TileEntityBreakerSwitch extends TileEntityImmersiveConnectable
 	public int facing=2;
 	public int wires = 0;
 	public boolean active=false;
-	
+	public boolean inverted=false;
+
 	@Override
 	protected boolean canTakeLV()
 	{
@@ -31,7 +32,7 @@ public class TileEntityBreakerSwitch extends TileEntityImmersiveConnectable
 	{
 		return true;
 	}
-	
+
 	@Override
 	public boolean canUpdate()
 	{
@@ -86,6 +87,7 @@ public class TileEntityBreakerSwitch extends TileEntityImmersiveConnectable
 		nbt.setInteger("sideAttached", sideAttached);
 		nbt.setInteger("wires", wires);
 		nbt.setBoolean("active", active);
+		nbt.setBoolean("inverted", inverted);
 	}
 	@Override
 	public void readCustomNBT(NBTTagCompound nbt, boolean descPacket)
@@ -95,35 +97,33 @@ public class TileEntityBreakerSwitch extends TileEntityImmersiveConnectable
 		sideAttached = nbt.getInteger("sideAttached");
 		wires = nbt.getInteger("wires");
 		active = nbt.getBoolean("active");
+		inverted = nbt.getBoolean("inverted");
 	}
 
 	@Override
 	public Vec3 getRaytraceOffset()
 	{
-		//		ForgeDirection fd = ForgeDirection.getOrientation(facing).getOpposite();
-		//		return Vec3.createVectorHelper(.5+.5*fd.offsetX, .5+.5*fd.offsetY, .5+.5*fd.offsetZ);
 		return Vec3.createVectorHelper(.5,.5,.5);
 	}
 	@Override
 	public Vec3 getConnectionOffset(Connection con)
 	{
-		double r = con.cableType.getRenderDiameter()/2;
 		if(sideAttached==0)
 		{
-			double h = .25+r;
-			if(con!=null && con.start!=null && con.end!=null)
-				if((con.start.equals(Utils.toCC(this)) && con.end!=null && con.end.posY>yCoord) || (con.end.equals(Utils.toCC(this)) && con.start!=null && con.start.posY>yCoord))
-					h=.8125-r;
-			return Vec3.createVectorHelper(facing==4?.0625-r:facing==5?.9375+r:.5, h, facing==2?.0625-r:facing==3?.9375+r:.5);
+			int xDif = (con==null||con.start==null||con.end==null)?0: (con.start.equals(Utils.toCC(this))&&con.end!=null)? con.end.posX-xCoord: (con.end.equals(Utils.toCC(this))&& con.start!=null)?con.start.posX-xCoord: 0;
+			int zDif = (con==null||con.start==null||con.end==null)?0: (con.start.equals(Utils.toCC(this))&&con.end!=null)? con.end.posZ-zCoord: (con.end.equals(Utils.toCC(this))&& con.start!=null)?con.start.posZ-zCoord: 0;
+
+			return Vec3.createVectorHelper(facing==4?.125:facing==5?.875:xDif<0?.25:.75, .5, facing==2?.125:facing==3?.875:zDif<0?.25:.75);
 		}
 		else
 		{
 			int xDif = (con==null||con.start==null||con.end==null)?0: (con.start.equals(Utils.toCC(this))&&con.end!=null)? con.end.posX-xCoord: (con.end.equals(Utils.toCC(this))&& con.start!=null)?con.start.posX-xCoord: 0;
 			int zDif = (con==null||con.start==null||con.end==null)?0: (con.start.equals(Utils.toCC(this))&&con.end!=null)? con.end.posZ-zCoord: (con.end.equals(Utils.toCC(this))&& con.start!=null)?con.start.posZ-zCoord: 0;
-			double h = sideAttached==1?.0625-r: .9375+r;
-			if((facing==4&&xDif>0) || (facing==5&&xDif<0) || (facing==2&&zDif>0) || (facing==3&&zDif<0))
-				return Vec3.createVectorHelper(facing==4?.6875:facing==5?.3125:.5, h, facing==2?.6875:facing==3?.3125:.5);
-			return Vec3.createVectorHelper(facing==4?.25:facing==5?.75:.5, h, facing==2?.25:facing==3?.75:.5);
+			double h = sideAttached==1?.125: .875;
+			if(facing>3)
+				return Vec3.createVectorHelper(.5,h,zDif>0?.75:.25);
+			else
+				return Vec3.createVectorHelper(xDif>0?.75:.25,h,.5);
 		}
 	}
 

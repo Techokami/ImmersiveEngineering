@@ -25,7 +25,7 @@ public class Squeezer
 		if(MTHelper.toObject(input)==null)
 			return;
 		//Either output or fluid must not be null. 
-		if(MTHelper.toStack(output)==null || (MTHelper.toFluidStack(fluid)==null||MTHelper.toFluidStack(fluid).getFluid()==null))
+		if(MTHelper.toStack(output)==null && (MTHelper.toFluidStack(fluid)==null||MTHelper.toFluidStack(fluid).getFluid()==null))
 			return;
 
 		SqueezerRecipe r = new SqueezerRecipe(MTHelper.toObject(input), time, MTHelper.toFluidStack(fluid), MTHelper.toStack(output));
@@ -96,7 +96,7 @@ public class Squeezer
 			while(it.hasNext())
 			{
 				SqueezerRecipe r = it.next();
-				if(r.fluid.isFluidEqual(output))
+				if(r.fluid!=null&&r.fluid.isFluidEqual(output))
 				{
 					removedRecipes.add(r);
 					it.remove();

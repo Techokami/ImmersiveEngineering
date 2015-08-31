@@ -155,7 +155,7 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 				}
 			}
 
-			ItemStack emptyContainer = Utils.drainFluidContainer(tank0, inventory[0], inventory[1]);
+			ItemStack emptyContainer = Utils.drainFluidContainer(tank0, inventory[0]);
 			if(emptyContainer!=null)
 			{
 				if(inventory[1]!=null && OreDictionary.itemMatches(inventory[1], emptyContainer, true))
@@ -165,7 +165,7 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 				this.decrStackSize(0, emptyContainer.stackSize);
 				update = true;
 			}
-			emptyContainer = Utils.drainFluidContainer(tank1, inventory[2], inventory[3]);
+			emptyContainer = Utils.drainFluidContainer(tank1, inventory[2]);
 			if(emptyContainer!=null)
 			{
 				if(inventory[3]!=null && OreDictionary.itemMatches(inventory[3], emptyContainer, true))
@@ -335,15 +335,21 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 		return new FluidTankInfo[]{tank0.getInfo(),tank1.getInfo(),tank2.getInfo()};
 	}
 
-	@SideOnly(Side.CLIENT)
 	@Override
+	@SideOnly(Side.CLIENT)
 	public AxisAlignedBB getRenderBoundingBox()
 	{
 		if(pos==17)
 			return AxisAlignedBB.getBoundingBox(xCoord-(facing==2||facing==3?2:1),yCoord,zCoord-(facing==4||facing==5?2:1), xCoord+(facing==2||facing==3?3:2),yCoord+3,zCoord+(facing==4||facing==5?3:2));
 		return AxisAlignedBB.getBoundingBox(xCoord,yCoord,zCoord, xCoord,yCoord,zCoord);
 	}
-
+	@Override
+    @SideOnly(Side.CLIENT)
+	public double getMaxRenderDistanceSquared()
+	{
+		return super.getMaxRenderDistanceSquared()*Config.getDouble("increasedTileRenderdistance");
+	}
+	
 	@Override
 	public void invalidate()
 	{
@@ -423,7 +429,6 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 			TileEntityRefinery master = master();
 			int rec = master.energyStorage.receiveEnergy(maxReceive, simulate);
 			master.markDirty();
-			worldObj.markBlockForUpdate(master.xCoord, master.yCoord, master.zCoord);
 			return rec;
 		}
 		return 0;

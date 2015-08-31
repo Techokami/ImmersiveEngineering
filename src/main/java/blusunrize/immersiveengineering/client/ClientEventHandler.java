@@ -16,12 +16,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.client.GuiIngameForge;
-import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -30,16 +30,19 @@ import net.minecraftforge.client.model.obj.Face;
 import net.minecraftforge.client.model.obj.GroupObject;
 import net.minecraftforge.client.model.obj.TextureCoordinate;
 import net.minecraftforge.client.model.obj.WavefrontObject;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 import org.lwjgl.opengl.GL11;
 
+import blusunrize.immersiveengineering.api.crafting.BlastFurnaceRecipe;
 import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
-import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
+import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.api.tool.IDrillHead;
+import blusunrize.immersiveengineering.client.gui.GuiBlastFurnace;
 import blusunrize.immersiveengineering.client.models.ModelIEObj;
 import blusunrize.immersiveengineering.common.Config;
 import blusunrize.immersiveengineering.common.IEContent;
@@ -52,10 +55,12 @@ import blusunrize.immersiveengineering.common.items.ItemSkyhook;
 import blusunrize.immersiveengineering.common.util.IELogger;
 import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import blusunrize.immersiveengineering.common.util.Lib;
-import blusunrize.immersiveengineering.common.util.Utils;
 import blusunrize.immersiveengineering.common.util.SkylineHelper;
+import blusunrize.immersiveengineering.common.util.Utils;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.relauncher.Side;
 
 public class ClientEventHandler
 {
@@ -72,10 +77,11 @@ public class ClientEventHandler
 				IEContent.fluidEthanol.setIcons(event.map.registerIcon("immersiveengineering:fluid/ethanol_still"), event.map.registerIcon("immersiveengineering:fluid/ethanol_flow"));
 			if(IEContent.IEBiodiesel)
 				IEContent.fluidBiodiesel.setIcons(event.map.registerIcon("immersiveengineering:fluid/biodiesel_still"), event.map.registerIcon("immersiveengineering:fluid/biodiesel_flow"));
+			WireType.iconDefaultWire = event.map.registerIcon("immersiveengineering:wire");
 		}
 		if(event.map.getTextureType()==Config.getInt("revolverSheetID"))
 		{
-			IELogger.info("Stitchign Revolver Textures!");
+			IELogger.info("Stitching Revolver Textures!");
 			((ItemRevolver)IEContent.itemRevolver).stichRevolverTextures(event.map);
 		}
 	}
@@ -106,14 +112,6 @@ public class ClientEventHandler
 							minV + sizeV * textureCoordinate.v
 							);
 				}
-	}
-
-	@SubscribeEvent()
-	public void onChatMessage(ClientChatReceivedEvent event)
-	{
-		//		I should probably try to catch that thing here sometime...meh
-		//		String loc = StatCollector.translateToLocal("death.attack.ieCrushed").substring(5);
-		//		if(event.message.getUnformattedTextForChat().contains(loc))
 	}
 
 	public static Set<Connection> skyhookGrabableConnections = new HashSet();
@@ -171,6 +169,16 @@ public class ClientEventHandler
 		}
 	}
 
+	@SubscribeEvent
+	public void onItemTooltip(ItemTooltipEvent event)
+	{
+		if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT
+				&& ClientUtils.mc().currentScreen != null
+				&& ClientUtils.mc().currentScreen instanceof GuiBlastFurnace
+				&& BlastFurnaceRecipe.isValidBlastFuel(event.itemStack))
+			event.toolTip.add(EnumChatFormatting.GRAY+StatCollector.translateToLocalFormatted("desc.ImmersiveEngineering.info.blastFuelTime", BlastFurnaceRecipe.getBlastFuelTime(event.itemStack)));
+	}
+
 	@SubscribeEvent()
 	public void lastWorldRender(RenderWorldLastEvent event)
 	{
@@ -184,7 +192,7 @@ public class ClientEventHandler
 		GL11.glPushMatrix();
 
 		GL11.glDisable(GL11.GL_CULL_FACE);
-//		GL11.glDisable(GL11.GL_TEXTURE_2D);
+		//		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glDisable(GL11.GL_ALPHA_TEST);
 		OpenGlHelper.glBlendFunc(770, 771, 1, 0);
@@ -222,7 +230,7 @@ public class ClientEventHandler
 			ImmersiveNetHandler.Connection con = it.next();
 			Tessellator.instance.setTranslation(con.start.posX-dx, con.start.posY-dy, con.start.posZ-dz);
 			double r = con.cableType.getRenderDiameter()/2;
-			ClientUtils.drawConnection(con, Utils.toIIC(con.start, world), Utils.toIIC(con.end, world),   0x00ff99,128,r*1.75);
+			ClientUtils.drawConnection(con, Utils.toIIC(con.start, world), Utils.toIIC(con.end, world),   0x00ff99,128,r*1.75, con.cableType.getIcon(con));
 		}
 
 		Tessellator.instance.setTranslation(0,0,0);

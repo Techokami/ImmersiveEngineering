@@ -2,6 +2,7 @@ package blusunrize.immersiveengineering;
 
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
@@ -9,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
+import blusunrize.immersiveengineering.api.IEApi;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
 import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.api.tool.ExcavatorHandler;
@@ -16,12 +18,13 @@ import blusunrize.immersiveengineering.common.CommonProxy;
 import blusunrize.immersiveengineering.common.Config;
 import blusunrize.immersiveengineering.common.EventHandler;
 import blusunrize.immersiveengineering.common.IEContent;
+import blusunrize.immersiveengineering.common.IERecipes;
 import blusunrize.immersiveengineering.common.IESaveData;
-import blusunrize.immersiveengineering.common.IEWorldGen;
 import blusunrize.immersiveengineering.common.items.ItemRevolver;
 import blusunrize.immersiveengineering.common.util.IELogger;
 import blusunrize.immersiveengineering.common.util.Lib;
 import blusunrize.immersiveengineering.common.util.compat.IECompatModule;
+import blusunrize.immersiveengineering.common.world.IEWorldGen;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -63,6 +66,10 @@ public class ImmersiveEngineering
 		WireType.cableTransferRate=Config.getIntArray("cableTransferRate");
 		WireType.cableColouration=Config.getIntArray("cableColouration");
 		WireType.cableLength=Config.getIntArray("cableLength");
+
+		for(int b : Config.getIntArray("oreDimBlacklist"))
+			IEWorldGen.oreDimBlacklist.add(b);
+		IEApi.modPreference = Arrays.asList(Config.getStringArray("preferredOres"));
 	}
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event)
@@ -85,6 +92,7 @@ public class ImmersiveEngineering
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event)
 	{
+		IERecipes.postInitCrusherAndArcRecipes();
 		for(IECompatModule compat : IECompatModule.modules)
 			if(Loader.isModLoaded(compat.modId))
 				compat.postInit();
@@ -124,7 +132,6 @@ public class ImmersiveEngineering
 			}
 		}
 	}
-
 
 	public static CreativeTabs creativeTab = new CreativeTabs(MODID)
 	{
@@ -168,7 +175,7 @@ public class ImmersiveEngineering
 							if(revolver.uuid!=null)
 								for(String uuid : revolver.uuid)
 									ItemRevolver.specialRevolvers.put(uuid, revolver);
-							ItemRevolver.specialRevolversByTag.put(revolver.tag, revolver);
+							ItemRevolver.specialRevolversByTag.put(!revolver.tag.isEmpty()?revolver.tag:revolver.flavour, revolver);
 						}
 					}catch(Exception excepParse)
 					{

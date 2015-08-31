@@ -1,10 +1,9 @@
 package blusunrize.immersiveengineering.api.energy;
 
-import static blusunrize.immersiveengineering.api.ApiUtils.toCC;
-import static blusunrize.immersiveengineering.api.ApiUtils.toIIC;
 import static blusunrize.immersiveengineering.api.ApiUtils.addVectors;
 import static blusunrize.immersiveengineering.api.ApiUtils.getConnectionCatenary;
-
+import static blusunrize.immersiveengineering.api.ApiUtils.toCC;
+import static blusunrize.immersiveengineering.api.ApiUtils.toIIC;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,6 +49,8 @@ public class ImmersiveNetHandler
 		getMultimap(world.provider.dimensionId).get(connection).add(new Connection(connection, node, cableType, distance));
 		if(FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER)
 			indirectConnections.clear();
+		world.addBlockEvent(node.posX, node.posY, node.posZ, world.getBlock(node.posX,node.posY,node.posZ),-1,0);
+		world.addBlockEvent(connection.posX, connection.posY, connection.posZ, world.getBlock(connection.posX,connection.posY,connection.posZ),-1,0);
 		IESaveData.setDirty(world.provider.dimensionId);
 	}
 	public void addConnection(World world, ChunkCoordinates node, Connection con)
@@ -69,7 +70,9 @@ public class ImmersiveNetHandler
 	}
 	public List<Connection> getConnections(World world, ChunkCoordinates node)
 	{
-		return getMultimap(world.provider.dimensionId).get(node);
+		if(getMultimap(world.provider.dimensionId).containsKey(node))
+			return getMultimap(world.provider.dimensionId).get(node);
+		return null;
 	}
 	public void clearAllConnections(World world)
 	{
@@ -119,9 +122,13 @@ public class ImmersiveNetHandler
 					double dy = node.posY+.5+Math.signum(con.start.posY-con.end.posY);
 					double dz = node.posZ+.5+Math.signum(con.start.posZ-con.end.posZ);
 					world.spawnEntityInWorld(new EntityItem(world, dx,dy,dz, con.cableType.getWireCoil()));
+					world.addBlockEvent(con.start.posX, con.start.posY, con.start.posZ, world.getBlock(con.start.posX,con.start.posY,con.start.posZ),-1,0);
 				}
+				else
+					world.addBlockEvent(con.end.posX, con.end.posY, con.end.posZ, world.getBlock(con.end.posX,con.end.posY,con.end.posZ),-1,0);
 			}
 		}
+		world.addBlockEvent(node.posX, node.posY, node.posZ, world.getBlock(node.posX,node.posY,node.posZ),-1,0);
 		IESaveData.setDirty(world.provider.dimensionId);
 		if(FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER)
 			indirectConnections.clear();
@@ -154,9 +161,14 @@ public class ImmersiveNetHandler
 						double dy = node.posY+.5+Math.signum(con.start.posY-con.end.posY);
 						double dz = node.posZ+.5+Math.signum(con.start.posZ-con.end.posZ);
 						world.spawnEntityInWorld(new EntityItem(world, dx,dy,dz, con.cableType.getWireCoil()));
+						world.addBlockEvent(con.start.posX, con.start.posY, con.start.posZ, world.getBlock(con.start.posX,con.start.posY,con.start.posZ),-1,0);
 					}
+					else
+						world.addBlockEvent(con.end.posX, con.end.posY, con.end.posZ, world.getBlock(con.end.posX,con.end.posY,con.end.posZ),-1,0);
 				}
 		}
+		world.addBlockEvent(node.posX, node.posY, node.posZ, world.getBlock(node.posX,node.posY,node.posZ),-1,0);
+
 		IESaveData.setDirty(world.provider.dimensionId);
 		if(FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER)
 			indirectConnections.clear();
@@ -237,12 +249,14 @@ public class ImmersiveNetHandler
 		HashMap<ChunkCoordinates,ChunkCoordinates> backtracker = new HashMap<ChunkCoordinates,ChunkCoordinates>();
 
 		checked.add(node);
-		for(Connection con : getConnections(world, node))
-			if(toIIC(con.end, world)!=null)
-			{
-				openList.add(toIIC(con.end, world));
-				backtracker.put(con.end, node);
-			}
+		List<Connection> conL = getConnections(world, node);
+		if(conL!=null)
+			for(Connection con : conL)
+				if(toIIC(con.end, world)!=null)
+				{
+					openList.add(toIIC(con.end, world));
+					backtracker.put(con.end, node);
+				}
 
 		IImmersiveConnectable next = null;
 		final int closedListMax = 1200;
@@ -264,27 +278,32 @@ public class ImmersiveNetHandler
 						last = backtracker.get(last);
 						if(last!=null)
 						{
-							for(Connection conB : getConnections(world, prev))
-								if(conB.end.equals(last))
-								{
-									connectionParts.add(conB);
-									distance += conB.length;
-									if(averageType==null || conB.cableType.getTransferRate()<averageType.getTransferRate())
-										averageType = conB.cableType;
-									break;
-								}
+
+							List<Connection> conLB = getConnections(world, prev);
+							if(conLB!=null)
+								for(Connection conB : conLB)
+									if(conB.end.equals(last))
+									{
+										connectionParts.add(conB);
+										distance += conB.length;
+										if(averageType==null || conB.cableType.getTransferRate()<averageType.getTransferRate())
+											averageType = conB.cableType;
+										break;
+									}
 						}
 					}
 					closedList.add(new AbstractConnection(toCC(node), toCC(next), averageType, distance, connectionParts.toArray(new Connection[connectionParts.size()])));
 				}
 
-				for(Connection con : getConnections(world, toCC(next)))
-					if(next.allowEnergyToPass(con))
-						if(toIIC(con.end, world)!=null && !checked.contains(con.end) && !openList.contains(toIIC(con.end, world)))
-						{
-							openList.add(toIIC(con.end, world));
-							backtracker.put(con.end, toCC(next));
-						}
+				List<Connection> conLN = getConnections(world, toCC(next));
+				if(conLN!=null)
+					for(Connection con : conLN)
+						if(next.allowEnergyToPass(con))
+							if(toIIC(con.end, world)!=null && !checked.contains(con.end) && !openList.contains(toIIC(con.end, world)))
+							{
+								openList.add(toIIC(con.end, world));
+								backtracker.put(con.end, toCC(next));
+							}
 				checked.add(toCC(next));
 			}
 			openList.remove(0);
@@ -317,7 +336,6 @@ public class ImmersiveNetHandler
 			{
 				Vec3 vStart = Vec3.createVectorHelper(start.posX,start.posY,start.posZ);
 				Vec3 vEnd = Vec3.createVectorHelper(end.posX, end.posY, end.posZ);
-				Vec3.createVectorHelper(end.posX,end.posY,end.posZ);
 				IImmersiveConnectable iicStart = toIIC(start, world);
 				IImmersiveConnectable iicEnd = toIIC(end, world);
 				if(iicStart!=null)
@@ -328,7 +346,7 @@ public class ImmersiveNetHandler
 			}
 			return catenaryVertices;
 		}
-		
+
 		@Override
 		public boolean equals(Object o)
 		{

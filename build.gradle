@@ -32,7 +32,7 @@ repositories {
 
 apply plugin: 'forge'
 
-version = "0.4.4"
+version = "0.6.0-pre"
 group= "blusunrize"
 archivesBaseName = "ImmersiveEngineering"
 

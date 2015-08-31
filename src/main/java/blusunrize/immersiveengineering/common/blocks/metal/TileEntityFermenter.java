@@ -99,13 +99,14 @@ public class TileEntityFermenter extends TileEntityMultiblockPart implements IFl
 
 							if(recipe!=null)
 							{
+								int recipeInputSize = recipe.input instanceof ItemStack?((ItemStack)recipe.input).stackSize:1;
 								int outLimit = recipe.output==null?9: ((64-(inventory[11]!=null?inventory[11].stackSize:0))/recipe.output.stackSize);
 								int fluidLimit = recipe.fluid==null?9: ((tank.getCapacity()-tank.getFluidAmount())/recipe.fluid.amount);
-								int taken = Math.min(Math.min(inputs,stack.stackSize), Math.min(outLimit,fluidLimit));
+								int taken = Math.min(Math.min(inputs,stack.stackSize/recipeInputSize), Math.min(outLimit,fluidLimit));
 								//								
 								if(taken>0)
 								{
-									this.decrStackSize(i, taken*(recipe.input instanceof ItemStack?((ItemStack)recipe.input).stackSize:1));
+									this.decrStackSize(i, taken*recipeInputSize);
 									if(recipe.output!=null)
 										if(inventory[11]!=null)
 											inventory[11].stackSize+= taken*recipe.output.copy().stackSize;
@@ -195,7 +196,7 @@ public class TileEntityFermenter extends TileEntityMultiblockPart implements IFl
 		if(recipe==null)
 			return null;
 
-		if(inventory[11]==null || recipe.output==null || (OreDictionary.itemMatches(inventory[11],recipe.output,false) && inventory[11].stackSize+recipe.output.stackSize<=getInventoryStackLimit()) )
+		if(inventory[11]==null || recipe.output==null || (OreDictionary.itemMatches(inventory[11],recipe.output,false) && inventory[11].stackSize+recipe.output.stackSize<=recipe.output.getMaxStackSize()) )
 			if(tank.getFluid()==null || recipe.fluid==null || (tank.getFluid().isFluidEqual(recipe.fluid) && tank.getFluidAmount()+recipe.fluid.amount<=tank.getCapacity()))
 				return recipe;
 		return null;
@@ -502,7 +503,7 @@ public class TileEntityFermenter extends TileEntityMultiblockPart implements IFl
 			return new int[0];
 		if(master()!=null)
 			return master().getAccessibleSlotsFromSide(side);
-		return new int[]{0,1,2,3,4,5,6,7,8,9,10};
+		return new int[]{0,1,2,3,4,5,6,7,8,9,10,11};
 	}
 	@Override
 	public boolean canInsertItem(int slot, ItemStack stack, int side)
@@ -520,7 +521,7 @@ public class TileEntityFermenter extends TileEntityMultiblockPart implements IFl
 			return false;
 		if(master()!=null)
 			return master().canExtractItem(slot,stack,side);
-		return slot!=9;
+		return slot==10&&slot==11;
 	}
 
 	@Override
@@ -536,7 +537,6 @@ public class TileEntityFermenter extends TileEntityMultiblockPart implements IFl
 			TileEntityFermenter master = master();
 			int rec = master.energyStorage.receiveEnergy(maxReceive, simulate);
 			master.markDirty();
-			worldObj.markBlockForUpdate(master.xCoord, master.yCoord, master.zCoord);
 			return rec;
 		}
 		return 0;

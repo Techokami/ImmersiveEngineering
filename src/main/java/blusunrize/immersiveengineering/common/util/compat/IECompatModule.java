@@ -14,10 +14,12 @@ public abstract class IECompatModule
 		modules.add(new MFRHelper());
 		modules.add(new MTHelper());
 		modules.add(new DenseOresHelper());
-		modules.add(new EE3Helper());
+//		modules.add(new EE3Helper());
+		modules.add(new FMPHelper());
 		modules.add(new ForestryHelper());
 		modules.add(new BacktoolsHelper());
 		modules.add(new WailaHelper());
+		modules.add(new GregTechHelper());
 	}
 	
 	public String modId;

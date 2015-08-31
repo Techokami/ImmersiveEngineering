@@ -21,6 +21,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.IFluidContainerItem;
 import blusunrize.immersiveengineering.ImmersiveEngineering;
 import blusunrize.immersiveengineering.client.render.BlockRenderMetalMultiblocks;
 import blusunrize.immersiveengineering.common.blocks.BlockIEBase;
@@ -28,6 +29,8 @@ import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.ICustomBo
 import blusunrize.immersiveengineering.common.blocks.ItemBlockIEBase;
 import blusunrize.immersiveengineering.common.util.Lib;
 import blusunrize.immersiveengineering.common.util.Utils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundingboxes
 {
@@ -40,12 +43,15 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	public static int META_bucketWheel=6;
 	public static int META_excavator=7;
 	public static int META_arcFurnace=8;
+	public static int META_tank=9;
+	public static int META_silo=10;
 	public BlockMetalMultiblocks()
 	{
 		super("metalMultiblock", Material.iron, 4, ItemBlockIEBase.class,
 				"lightningRod","dieselGenerator",
 				"industrialSqueezer","fermenter","refinery",
-				"crusher","bucketWheel","excavator","arcFurnace");
+				"crusher","bucketWheel","excavator","arcFurnace",
+				"tank","silo");
 		setHardness(3.0F);
 		setResistance(15.0F);
 	}
@@ -61,11 +67,12 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	public void getSubBlocks(Item item, CreativeTabs tab, List list)
 	{
 		for(int i=0; i<subNames.length; i++)
-			if(i!=META_dieselGenerator && i!=META_refinery && i!=META_crusher && i!=META_bucketWheel && i!=META_excavator)
+			if(i!=META_dieselGenerator && i!=META_refinery && i!=META_crusher && i!=META_bucketWheel && i!=META_excavator && i!=META_arcFurnace)
 				list.add(new ItemStack(item, 1, i));
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public void registerBlockIcons(IIconRegister iconRegister)
 	{
 		//0 lightningRod
@@ -86,21 +93,20 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 		icons[3][1] = iconRegister.registerIcon("immersiveengineering:metal_multiblockTop");
 		icons[3][2] = iconRegister.registerIcon("immersiveengineering:metal_multiblockFermenter0");
 		icons[3][3] = iconRegister.registerIcon("immersiveengineering:metal_multiblockFermenter1");
-		//4 fermenter
-		icons[4][0] = iconRegister.registerIcon("immersiveengineering:metal_fermenter");
-		icons[4][1] = iconRegister.registerIcon("immersiveengineering:metal_multiblockTop");
-		icons[4][2] = iconRegister.registerIcon("immersiveengineering:metal_multiblockFermenter0");
-		icons[4][3] = iconRegister.registerIcon("immersiveengineering:metal_multiblockFermenter1");
-		//5 crusher
+		//all others
 		for(int i=0;i<4;i++)
 		{
+			icons[4][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 			icons[5][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 			icons[6][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 			icons[7][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 			icons[8][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
+			icons[9][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
+			icons[10][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 		}
 	}
 	@Override
+	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side)
 	{
 		if(world.getBlockMetadata(x, y, z)==META_squeezer)
@@ -222,6 +228,32 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 				}
 			}
 		}
+		if(!player.isSneaking() && world.getTileEntity(x, y, z) instanceof TileEntitySheetmetalTank)
+		{
+			if(!world.isRemote)
+			{
+				TileEntitySheetmetalTank tank = (TileEntitySheetmetalTank)world.getTileEntity(x, y, z);
+				TileEntitySheetmetalTank master = tank.master();
+				if(master==null)
+					master = tank;
+				if(Utils.fillFluidHandlerWithPlayerItem(world, master, player))
+					return true;
+				if(Utils.fillPlayerItemFromFluidHandler(world, master, player, master.tank.getFluid()))
+					return true;
+				if(player.getCurrentEquippedItem()!=null && player.getCurrentEquippedItem().getItem() instanceof IFluidContainerItem)
+					return true;
+			}
+			return true;
+		}
+		if(!world.isRemote && !player.isSneaking() && world.getTileEntity(x, y, z) instanceof TileEntitySilo)
+		{
+			TileEntitySilo te = ( TileEntitySilo)world.getTileEntity(x, y, z);
+			TileEntitySilo master = te.master();
+			if(master==null)
+				master = te;
+			System.out.println("ident: "+master.identStack);
+			System.out.println("amount: "+master.storageAmount);
+		}
 		return false;
 	}
 
@@ -248,7 +280,9 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 		if(world.getTileEntity(x, y, z) instanceof TileEntityCrusher)
 		{
 			TileEntityCrusher tile = (TileEntityCrusher)world.getTileEntity(x, y, z);
-			if(tile.pos==9 && side.ordinal()==tile.facing)
+			if(tile.pos%5==0)
+				return true;
+			else if(tile.pos==9 && side.ordinal()==tile.facing)
 				return true;
 		}
 		if(world.getTileEntity(x, y, z) instanceof TileEntityExcavator)
@@ -267,7 +301,28 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 			if( (tile.pos>=21&&tile.pos<=23) || (tile.pos>=46&&tile.pos<=48) || (tile.pos>=71&&tile.pos<=73))
 				return side.getOpposite().ordinal()==tile.facing;
 		}
+		if(world.getTileEntity(x, y, z) instanceof TileEntitySheetmetalTank || world.getTileEntity(x, y, z) instanceof TileEntitySilo)
+		{
+			TileEntityMultiblockPart tile = (TileEntityMultiblockPart)world.getTileEntity(x, y, z);
+			return tile.pos==4||tile.pos==(tile instanceof TileEntitySilo?58:40)||(tile.pos>=18&&tile.pos<(tile instanceof TileEntitySilo?54:36));
+		}
 		return super.isSideSolid(world, x, y, z, side);
+	}
+
+	@Override
+	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side)
+	{
+		if(world.getTileEntity(x, y, z) instanceof TileEntityDieselGenerator)
+			return ((TileEntityDieselGenerator)world.getTileEntity(x, y, z)).pos==21 || ((TileEntityDieselGenerator)world.getTileEntity(x, y, z)).pos==23;
+		if(world.getTileEntity(x, y, z) instanceof TileEntityRefinery)
+			return ((TileEntityRefinery)world.getTileEntity(x, y, z)).pos==9 && side==((TileEntityRefinery)world.getTileEntity(x, y, z)).facing;
+		if(world.getTileEntity(x, y, z) instanceof TileEntityCrusher)
+			return ((TileEntityCrusher)world.getTileEntity(x, y, z)).pos==9 && side==((TileEntityCrusher)world.getTileEntity(x, y, z)).facing;
+		if(world.getTileEntity(x, y, z) instanceof TileEntityExcavator)
+			return ((TileEntityExcavator)world.getTileEntity(x, y, z)).pos==3 || ((TileEntityExcavator)world.getTileEntity(x, y, z)).pos==5;
+		if(world.getTileEntity(x, y, z) instanceof TileEntityArcFurnace)
+			return ((TileEntityArcFurnace)world.getTileEntity(x, y, z)).pos==25;
+		return false;
 	}
 
 	@Override
@@ -510,6 +565,10 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 			return new TileEntityExcavator();
 		case 8://8 arcFurnace
 			return new TileEntityArcFurnace();
+		case 9://9 tank
+			return new TileEntitySheetmetalTank();
+		case 10://10 silo
+			return new TileEntitySilo();
 		}
 		return null;
 	}

@@ -8,11 +8,11 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import blusunrize.immersiveengineering.api.ApiUtils;
+import blusunrize.immersiveengineering.api.TargetingInfo;
 import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
-import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
-import blusunrize.immersiveengineering.api.TargetingInfo;
+import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.common.util.IELogger;
 import blusunrize.immersiveengineering.common.util.Utils;
 
@@ -46,7 +46,7 @@ public abstract class TileEntityImmersiveConnectable extends TileEntityIEBase im
 	{
 		return true;
 	}
-	
+
 	@Override
 	public boolean canConnect()
 	{
@@ -91,7 +91,8 @@ public abstract class TileEntityImmersiveConnectable extends TileEntityIEBase im
 	public void removeCable(Connection connection)
 	{
 		WireType type = connection!=null?connection.cableType:null;
-		if(ImmersiveNetHandler.INSTANCE.getConnections(worldObj,Utils.toCC(this)).isEmpty())
+		List<Connection> outputs = ImmersiveNetHandler.INSTANCE.getConnections(worldObj,Utils.toCC(this));
+		if(outputs!=null && outputs.size()>0)
 		{
 			if(type==limitType || type==null)
 				this.limitType = null;
@@ -109,8 +110,9 @@ public abstract class TileEntityImmersiveConnectable extends TileEntityIEBase im
 		{
 			NBTTagList connectionList = new NBTTagList();
 			List<Connection> conL = ImmersiveNetHandler.INSTANCE.getConnections(worldObj, Utils.toCC(this));
-			for(Connection con : conL)
-				connectionList.appendTag(con.writeToNBT());
+			if(conL!=null)
+				for(Connection con : conL)
+					connectionList.appendTag(con.writeToNBT());
 			nbttagcompound.setTag("connectionList", connectionList);
 		}
 		return new S35PacketUpdateTileEntity(this.xCoord, this.yCoord, this.zCoord, 3, nbttagcompound);
@@ -136,6 +138,17 @@ public abstract class TileEntityImmersiveConnectable extends TileEntityIEBase im
 					IELogger.error("CLIENT read connection as null");
 			}
 		}
+	}
+
+	@Override
+	public boolean receiveClientEvent(int id, int arg)
+	{
+		if(id==-1)
+		{
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+			return true;
+		}
+		return false;
 	}
 
 	@Override

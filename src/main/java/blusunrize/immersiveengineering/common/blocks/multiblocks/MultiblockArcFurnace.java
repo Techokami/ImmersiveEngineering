@@ -1,6 +1,7 @@
 package blusunrize.immersiveengineering.common.blocks.multiblocks;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -8,12 +9,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
+import blusunrize.immersiveengineering.ImmersiveEngineering;
 import blusunrize.immersiveengineering.api.MultiblockHandler.IMultiblock;
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityArcFurnace;
 import blusunrize.immersiveengineering.common.util.Utils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class MultiblockArcFurnace implements IMultiblock
 {
@@ -50,7 +54,7 @@ public class MultiblockArcFurnace implements IMultiblock
 					{
 						if(l==4)
 							m = BlockMetalDecoration.META_lightEngineering;
-						else if((l==0&&w==2)|| (l>0&&w>0&&w<4)||l==2)
+						else if((w>0&&w<4)||l==2)
 							structure[h][w][l] = new ItemStack(IEContent.blockStorage,1,7);
 					}
 					else if(h==3)
@@ -76,60 +80,33 @@ public class MultiblockArcFurnace implements IMultiblock
 	@Override
 	public ItemStack[][][] getStructureManual()
 	{
-		structure = new ItemStack[5][5][5];
-		for(int h=0;h<5;h++)
-			for(int l=0;l<5;l++)
-				for(int w=0;w<5;w++)
-				{
-					int m = -1;
-					if(h==0)
-					{
-						if(l==0&&w==2)
-							structure[h][w][l] = new ItemStack(Items.cauldron);
-						else if(l==2&&(w==0||w==4))
-							structure[h][w][l] = new ItemStack(IEContent.blockStorage,1,7);
-						else if((l==0&&w==0)||(l>2&&(w==0||w==4)))
-							m = BlockMetalDecoration.META_scaffolding;
-						else if(l==4&& w>0&&w<4)
-							m = BlockMetalDecoration.META_heavyEngineering;
-						else
-							structure[h][w][l] = new ItemStack(IEContent.blockStorageSlabs,1,7);
-					}
-					else if(h==1)
-					{
-						if((l==0&&w==0)||(l==4&&w>0&&w<4))
-							m = BlockMetalDecoration.META_lightEngineering;
-						else if((w==0||w==4)&&l>1)
-							m = BlockMetalDecoration.META_heavyEngineering;
-					}
-					else if(h==2)
-					{
-						if(l==4)
-							m = BlockMetalDecoration.META_lightEngineering;
-						else if((l==0&&w==2)|| (l>0&&w>0&&w<4)||l==2)
-							structure[h][w][l] = new ItemStack(IEContent.blockStorage,1,7);
-					}
-					else if(h==3)
-					{
-						if(l==4 && w==2)
-							m = BlockMetalDecoration.META_lightEngineering;
-						else if(l==4 && (w==1||w==3))
-							m = BlockMetalDecoration.META_scaffolding;
-						else if(l>0&&w>0&&w<4)
-							structure[h][w][l] = new ItemStack(IEContent.blockStorage,1,7);
-					}
-					else if(h==4)
-					{
-						if(l==4 && (w==1||w==3))
-							m = BlockMetalDecoration.META_scaffolding;
-						else if(l>1 && w==2)
-							m = BlockMetalDecoration.META_lightEngineering;
-					}
-					if(m>=0)
-						structure[h][w][l]= new ItemStack(IEContent.blockMetalDecoration,1,m);
-				}
-
 		return structure;
+	}
+	@Override
+	public boolean overwriteBlockRender(ItemStack stack)
+	{
+		if(stack.getItem()==Items.cauldron)
+		{
+			ImmersiveEngineering.proxy.draw3DBlockCauldron();
+			return true;
+		}
+		return false;
+	}
+	@Override
+	@SideOnly(Side.CLIENT)
+	public boolean canRenderFormedStructure()
+	{
+		return true;
+	}
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void renderFormedStructure()
+	{
+		TileEntityArcFurnace te = new TileEntityArcFurnace();
+		te.formed=true;
+		te.pos=62;
+		te.facing=4;
+		TileEntityRendererDispatcher.instance.renderTileEntityAt(te, -.5D, 0.0D, -.5D, 0.0F);
 	}
 
 	@Override
@@ -141,84 +118,24 @@ public class MultiblockArcFurnace implements IMultiblock
 	@Override
 	public boolean createStructure(World world, int x, int y, int z, int side, EntityPlayer player)
 	{
-		//		if(side==0||side==1)
-		//			return false;
-		//		structure = new ItemStack[5][5][5];
-		//			for(int h=0;h<5;h++)
-		//				for(int l=0;l<5;l++)
-		//					for(int w=0;w<5;w++)
-		//					{
-		//						int m = -1;
-		//						if(h==0)
-		//						{
-		//							if(l==0&&w==2)
-		//								structure[h][w][l] = new ItemStack(Blocks.cauldron);
-		//							else if(l==2&&(w==0||w==4))
-		//								structure[h][w][l] = new ItemStack(IEContent.blockStorage,1,7);
-		//							else if((l==0&&w==0)||(l>2&&(w==0||w==4)))
-		//								m = BlockMetalDecoration.META_scaffolding;
-		//							else if(l==4&& w>0&&w<4)
-		//								m = BlockMetalDecoration.META_heavyEngineering;
-		//							else
-		//								structure[h][w][l] = new ItemStack(IEContent.blockStorageSlabs,1,7);
-		//						}
-		//						else if(h==1)
-		//						{
-		//							if((l==0&&w==0)||(l==4&&w>0&&w<4))
-		//								m = BlockMetalDecoration.META_lightEngineering;
-		//							else if((w==0||w==4)&&l>1)
-		//								m = BlockMetalDecoration.META_heavyEngineering;
-		//						}
-		//						else if(h==2)
-		//						{
-		//							if(l==4)
-		//								m = BlockMetalDecoration.META_lightEngineering;
-		//							else if((l==0&&w==2)||(w>1&&w<4)||l==2)
-		//								structure[h][w][l] = new ItemStack(IEContent.blockStorage,1,7);
-		//						}
-		//						else if(h==3)
-		//						{
-		//							if(l==4 && w==2)
-		//								m = BlockMetalDecoration.META_lightEngineering;
-		//							else if(l==4 && (w==1||w==3))
-		//								m = BlockMetalDecoration.META_scaffolding;
-		//							else if(l>0&&w>0&&w<4)
-		//								structure[h][w][l] = new ItemStack(IEContent.blockStorage,1,7);
-		//						}
-		//						else if(h==4)
-		//						{
-		//							if(l>2 && w==2)
-		//								m = BlockMetalDecoration.META_lightEngineering;
-		//							else if(l==4 && (w==1||w==3))
-		//								m = BlockMetalDecoration.META_scaffolding;
-		//						}
-		//						if(m>=0)
-		//							structure[h][w][l]= new ItemStack(IEContent.blockMetalDecoration,1,m);
-		//					}
+		if(side==0||side==1)
+		{
+			int playerViewQuarter = MathHelper.floor_double(player.rotationYaw * 4.0F / 360.0F + 0.5D) & 3;
+			int f = playerViewQuarter==0 ? 2:playerViewQuarter==1 ? 5:playerViewQuarter==2 ? 3: 4;
+			side = f;
+		}
 
-
-
-
-		//		if(world.getBlock(x,y-1,z).equals(IEContent.blockMetalDecoration) && world.getBlockMetadata(x,y-1,z)==BlockMetalDecoration.META_scaffolding
-		//				&& world.getBlock(x+(side==4?2:side==5?-2:0),y-1,z+(side==2?2:side==3?-2:0)).equals(IEContent.blockMetalDecoration) && world.getBlockMetadata(x+(side==4?2:side==5?-2:0),y-1,z+(side==2?2:side==3?-2:0))==BlockMetalDecoration.META_lightEngineering)
-		//		{
-		//			startX = x+(side==4?2:side==5?-2:0);
-		//			startZ = z+(side==2?2:side==3?-2:0);
-		//			side = ForgeDirection.OPPOSITES[side];
-		//		}
-		int playerViewQuarter = MathHelper.floor_double(player.rotationYaw * 4.0F / 360.0F + 0.5D) & 3;
-		int f = playerViewQuarter==0 ? 2:playerViewQuarter==1 ? 5:playerViewQuarter==2 ? 3: 4;
-
-		int startX=x+(f==4?2: f==5?-2: 0);
+		int startX=x+(side==4?2: side==5?-2: 0);
 		int startY=y+2;
-		int startZ=z+(f==2?2: f==3?-2: 0);
-		
+		int startZ=z+(side==2?2: side==3?-2: 0);
+
+
 		boolean mirrored = false;
-		boolean b = structureCheck(world,startX,startY,startZ, f, mirrored);
+		boolean b = structureCheck(world,startX,startY,startZ, side, mirrored);
 		if(!b)
 		{
 			mirrored = true;
-			b = structureCheck(world,startX,startY,startZ, f, mirrored);
+			b = structureCheck(world,startX,startY,startZ, side, mirrored);
 		}
 
 		if(b)
@@ -293,9 +210,14 @@ public class MultiblockArcFurnace implements IMultiblock
 		return new ItemStack[]{
 				new ItemStack(Items.cauldron),
 				new ItemStack(IEContent.blockStorageSlabs,14,7),
-				new ItemStack(IEContent.blockStorage,23,7),
+				new ItemStack(IEContent.blockStorage,25,7),
 				new ItemStack(IEContent.blockMetalDecoration,13,BlockMetalDecoration.META_lightEngineering),
 				new ItemStack(IEContent.blockMetalDecoration,9,BlockMetalDecoration.META_heavyEngineering),
 				new ItemStack(IEContent.blockMetalDecoration,9,BlockMetalDecoration.META_scaffolding)};
+	}
+	@Override
+	public float getManualScale()
+	{
+		return 12;
 	}
 }

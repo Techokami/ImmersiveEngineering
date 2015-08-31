@@ -50,6 +50,8 @@ tile.ImmersiveEngineering.metalMultiblock.crusher.name=Crusher
 tile.ImmersiveEngineering.metalMultiblock.bucketWheel.name=Bucket Wheel
 tile.ImmersiveEngineering.metalMultiblock.excavator.name=Excavator
 tile.ImmersiveEngineering.metalMultiblock.arcFurnace.name=Arc Furnace
+tile.ImmersiveEngineering.metalMultiblock.tank.name=Fluid Tank
+tile.ImmersiveEngineering.metalMultiblock.silo.name=Item Silo
 
 tile.ImmersiveEngineering.metalDecoration.fence.name=Steel Fence
 tile.ImmersiveEngineering.metalDecoration.scaffolding.name=Steel Scaffolding
@@ -61,6 +63,7 @@ tile.ImmersiveEngineering.metalDecoration.generator.name=Generator Block
 tile.ImmersiveEngineering.metalDecoration.lightEngineering.name=Light Engineering Block
 tile.ImmersiveEngineering.metalDecoration.connectorStructural.name=Structural Cable Connector
 tile.ImmersiveEngineering.metalDecoration.wallMount.name=Steel Wall Mount
+tile.ImmersiveEngineering.metalDecoration.sheetMetal.name=Sheet Metal Block
 
 tile.ImmersiveEngineering.metalDevice2.breakerSwitch.name=Breaker Switch
 
@@ -70,6 +73,7 @@ tile.ImmersiveEngineering.woodenDevice.windmill.name=Windmill
 tile.ImmersiveEngineering.woodenDevice.windmillAdvanced.name=Improved Windmill
 tile.ImmersiveEngineering.woodenDevice.crate.name=Wooden Storage Crate
 tile.ImmersiveEngineering.woodenDevice.modificationWorkbench.name=Engineer's Workbench
+tile.ImmersiveEngineering.woodenDevice.barrel.name=Wooden Barrel
 
 tile.ImmersiveEngineering.woodenDecoration.treatedWood.name=Treated Wood Planks
 tile.ImmersiveEngineering.woodenDecoration.fence.name=Treated Wood Fence
@@ -86,6 +90,14 @@ tile.ImmersiveEngineering.stoneDevice.cokeOven.name=Coke Oven
 tile.ImmersiveEngineering.stoneDevice.blastFurnace.name=Blast Furnace
 tile.ImmersiveEngineering.stoneDevice.coalCoke.name=Block of Coal Coke
 tile.ImmersiveEngineering.stoneDevice.insulatorGlass.name=Insulating Glass
+
+tile.ImmersiveEngineering.stoneDecoration.hempcrete.name=Hempcrete
+tile.ImmersiveEngineering.stoneDecoration.cokeBrick.name=Coke Brick
+tile.ImmersiveEngineering.stoneDecoration.blastBrick.name=Blast Brick
+tile.ImmersiveEngineering.stoneDecoration.coalCoke.name=Block of Coal Coke
+tile.ImmersiveEngineering.stoneDecoration.concrete.name=Concrete
+tile.ImmersiveEngineering.stoneDecoration.concreteTile.name=Concrete Tile
+
 
 tile.ImmersiveEngineering.hemp.name=Industrial Hemp
 
@@ -188,6 +200,8 @@ item.ImmersiveEngineering.bullet.HE.name=High-Explosive Cartridge
 item.ImmersiveEngineering.bullet.dragonsbreath.name=Dragon's Breath Cartridge
 item.ImmersiveEngineering.bullet.homing.name=Homing Cartridge
 item.ImmersiveEngineering.bullet.wolfpack.name=Wolfpack Cartridge
+item.ImmersiveEngineering.bullet.silver.name=Silver Cartridge
+item.ImmersiveEngineering.bullet.potion.name=Phial Cartridge
 
 item.ImmersiveEngineering.drill.diesel.name=Mining Drill
 item.ImmersiveEngineering.drillhead.iron.name=Iron Drill Head
@@ -212,6 +226,8 @@ item.ImmersiveEngineering.graphiteElectrode.name=Graphite Electrode
 itemGroup.ImmersiveEngineering=Immersive Engineering
 
 #DESCRIPTIONS
+description.villager.profession.immersiveengineering.villager_engineer=Engineer
+
 desc.ImmersiveEngineering.info.attachedTo=Linking from %1$s, %2$s, %3$s
 desc.ImmersiveEngineering.info.attachedToDim=Linking from %1$s, %2$s, %3$s in Dimension %4$s
 desc.ImmersiveEngineering.info.energyStored=Energy stored: %1$s RF
@@ -257,17 +273,22 @@ desc.ImmersiveEngineering.info.mineral.Galena=Galena
 desc.ImmersiveEngineering.info.mineral.Lead=Lead
 desc.ImmersiveEngineering.info.mineral.Silver=Silver
 desc.ImmersiveEngineering.info.mineral.Lapis=Lapis
+desc.ImmersiveEngineering.info.mineral.Coal=Coal
 
 desc.ImmersiveEngineering.info.reqMaterial=Required Materials:
+desc.ImmersiveEngineering.info.chance=Chance:
 
 desc.ImmersiveEngineering.info.blueprint.creates0=Created Items: §6Hold Shift§r
 desc.ImmersiveEngineering.info.blueprint.creates1=Created Items:
 desc.ImmersiveEngineering.info.blueprint.bullet=Common Projectiles
 desc.ImmersiveEngineering.info.blueprint.specialBullet=Specialized Projectiles
+desc.ImmersiveEngineering.info.blueprint.electrode=Arc Furnace Electrodes
 
 desc.ImmersiveEngineering.info.electrodeIntegrity=Integrity
 
 desc.ImmersiveEngineering.flavour.crate=Will keep its inventory when broken!
+desc.ImmersiveEngineering.flavour.barrel=Will keep its fluid when broken!
+desc.ImmersiveEngineering.flavour.barrelTemp=Cannot store hot fluids
 desc.ImmersiveEngineering.flavour.coil.construction0=For decoration purposes only
 desc.ImmersiveEngineering.flavour.coil.construction1=Will not transmit power
 desc.ImmersiveEngineering.flavour.revolver=Go ahead, make my day!
@@ -317,6 +338,9 @@ chat.ImmersiveEngineering.warning.connectionExists=The connection exists already
 chat.ImmersiveEngineering.warning.invalidPoint=One of the connection points is invalid
 chat.ImmersiveEngineering.info.averageLoss=Average loss between points: %1$s%%
 chat.ImmersiveEngineering.info.energyStorage=Energy Stored: %1$s/%2$s RF
+chat.ImmersiveEngineering.info.tooHot=This fluid is too hot for the container!
+chat.ImmersiveEngineering.info.invertedOn=Set redstone signal to inverted
+chat.ImmersiveEngineering.info.invertedOff=Set redstone signal to not inverted
 
 chat.ImmersiveEngineering.info.forChunk=§8For Chunk from %1$s to %2$s
 chat.ImmersiveEngineering.info.coreDrill.progress=Core Sample in progress: %1$s
@@ -335,6 +359,8 @@ death.attack.ieRevolver_buckshot=%1$s was shotgunned by %2$s
 death.attack.ieRevolver_dragonsbreath=%1$s was incinerated by %2$s
 death.attack.ieRevolver_homing=%1$s was shot by %2$s's homing bullet
 death.attack.ieRevolver_wolfpack=%1$s was shredded by %2$s's Wolfpack Rounds
+death.attack.ieRevolver_silver=%1$s was purified by %2$s's silver bullet
+death.attack.ieRevolver_potion=%1$s was doused by %2$s's phial shot
 death.attack.ieCrushed=%1$s was crushed
 
 #MANUAL
@@ -362,7 +388,7 @@ ie.manual.entry.oresNickel=§lNickel Ore§r is found in the world between layers
 
 ie.manual.entry.oreProcessing.name=Ore Processing
 ie.manual.entry.oreProcessing.subtext=
-ie.manual.entry.oreProcessing0=Crafting ores and alloys with a hammer allows you to crush them into dusts. This dust can be resmelted into ingots, but even more importantly, is used to create alloys.<config;b;crushingOreRecipe;<br>Crushing ores with the hammer will yield two dusts, effectively doubling your gain of ingots from ore.; >
+ie.manual.entry.oreProcessing0=Crafting<config;b;crushingOreRecipe;ores and> ingots with a hammer allows you to crush them into dusts. This dust can be resmelted into ingots, but even more importantly, is used to create alloys.<config;b;crushingOreRecipe;<br>Crushing ores with the hammer will yield two dusts, effectively doubling your gain of ingots from ore.>
 ie.manual.entry.oreProcessing1=Mixing dusts creates an alloy blend that can then be smelted into alloyed ingots. Constantan has thermo-electric properties and is used in creating the <link;generator;§o§nthermoelectric §o§ngenerator§r;1> and electrum is an excellent electric conductor used in <link;wiring;§o§nmedium-voltage §o§narchitecture§r>.
 
 ie.manual.entry.hemp.name=Industrial Hemp
@@ -379,6 +405,11 @@ ie.manual.entry.treatedwood.subtext=Highly Durable
 ie.manual.entry.treatedwood0=Treated Wood is, quite simply, wooden planks covered in creosote oil. It is however, one of the most important materials you will be using in Immersive Engineering, so you'd better be prepared to create a lot of it.
 ie.manual.entry.treatedwoodPost0=Posts made from treated wood make for excellent attachment points for your Wire Connectors. They are 4 blocks high, so you won't be able to place them without the proper clearance.<br>Using the hammer on the sides of the topmost block will attach an arm to the post. 
 ie.manual.entry.treatedwoodPost1=You can also place <link;wiring;§o§ntransformers§r;3> on the pole, which makes it less obtrusive.<br>Placing blocks below the arms of the wooden post will flip the arms upside down.
+
+ie.manual.entry.graphite.name=Graphite
+ie.manual.entry.graphite.subtext=Coal stuff
+ie.manual.entry.graphite0=Highly Ordered Pyrolytic Graphite (HOP) is a complex, highly compressed, carbon material used in special engineering constructs.<br>HOP Graphite Dust is created by compressing eight pieces of Coke Dust in the <link;biodiesel;§o§nIndustrial §o§nSqueezer§r;1>. That dust can then be smelted into an ingot.
+ie.manual.entry.graphite1=The most common use for HOP Graphite is the creation of electrodes to be used in the <link;arcfurnace;§o§nArc §o§nFurnace§r>. These electrodes are created with an <link;blueprints;§o§nEngineer's §o§nBlueprint§r>, which you can<config;b;arcfurnace_electrodeCrafting; craft,> find in certain chests or trade with a villager.
 
 ie.manual.entry.wiring.name=Basic Wiring
 ie.manual.entry.wiring.subtext=Bzzzt!
@@ -402,7 +433,8 @@ ie.manual.entry.generatorWindmillImproved=The improved Windmill is an upgrade to
 
 ie.manual.entry.breaker.name=Breaker Switch
 ie.manual.entry.breaker.subtext=Clap on - Clap off
-ie.manual.entry.breaker0=Breaker Switches are simply switches that can stop the flow of power through wires. They can connect two wires of the same type and will only allow power to pass when activated. This can be used to seperate power-hungry machinery from the network or switch on an additional set of generators where needed!
+ie.manual.entry.breaker0=Breaker Switches are simply switches that can stop the flow of power through wires. They can connect two wires of the same type and will only allow power to pass when activated. This can be used to seperate power-hungry machinery from the network or hook up an additional set of generators when needed!
+ie.manual.entry.breaker1=These breaker switches will emit a redstone signal when they are switched on; this behaviour can be inverted by clicking the switch with an Engineer's Hammer.
 #When lights are added, these switches have another use ;D
 
 ie.manual.entry.thermoElectric.name=Thermoelectric Generator
@@ -481,10 +513,10 @@ ie.manual.entry.drill5=The Large Fuel Tank allows the drill to store more fuel i
 
 ie.manual.entry.revolver.name=Revolver
 ie.manual.entry.revolver.subtext=Wanted: Dead or Alive
-ie.manual.entry.revolver0=The Revolver, a more elegant weapon from a more civilized age, is an achievement of small mechanics. Small being relative here, since this weapon is chambered for 12-gauge.<br>Similar to the Mining Drill, the Revolver will allow for modification in the <link;workbench;§o§nEngineer's §o§nWorkbench§r>. These modificatiosn are detailed on the last pages of this entry.
+ie.manual.entry.revolver0=The Revolver, a more elegant weapon from a more civilized age, is an achievement of small mechanics. Small being relative here, since this weapon is chambered for 12-gauge.<br>Similar to the Mining Drill, the Revolver will allow for modification in the <link;workbench;§o§nEngineer's §o§nWorkbench§r>, as detailed on the last pages.
 ie.manual.entry.revolver1=There are different types of ammunition the Revolver will accept. To load it, sneak+rightclick the weapon, then place cartridges into the slots.<br>A loaded Speedloader in your inventory, will be used to refill the revolver after you've fired your last shot.
-ie.manual.entry.revolver2=Cartridges are created in the Engineer's Workbench, by the use of specific <link;blueprints;§o§nEngineer's §o§nBlueprints§r>. Blueprints for normal ammunition you can create yourself, but some more advanced types of ammunition will require you to buy adquate blueprints from someone else. 
-ie.manual.entry.revolver3=These are common types of ammunition, created with simple, selfmade blueprints:<br><br>§lCasull:§r Simple lead projectile, capable of inflicting medium damage.<br>§lArmor-Piercing:§r Dense metal projectile, penetrates the armor by sheer kinetic force.<br>§lBuckshot:§r Collection of small projectiles, spreading in a cone shape. Effective at short range.<br>§lHigh-Explosive:§r Creates small explosion on impact.
+ie.manual.entry.revolver2=Cartridges are created in the Engineer's Workbench, by the use of specific <link;blueprints;§o§nEngineer's §o§nBlueprints§r>. Blueprints for normal ammunition you can create yourself, but some more advanced types of ammunition will require you to buy adequate blueprints from someone else. 
+ie.manual.entry.revolver3=These are common types of ammunition, created with simple, selfmade blueprints:<br><br>§lCasull:§r Simple lead projectile, capable of inflicting medium damage.<br>§lArmor-Piercing:§r Dense metal projectile, penetrates the armor by sheer kinetic force.<br>§lBuckshot:§r Collection of small projectiles, spreading in a cone shape. Effective at short range.<br>§lHigh-Explosive:§r Creates small explosion on impact.<br>§lSilver:§r Lead core in silver, effective against...werewolves?!.
 ie.manual.entry.revolver4=These are more intricate types of ammunition, created with unique blueprints that cannot be crafted, only found or bought.<br><br>§lDragon's Breath:§r Flammable metal dust, creates a short-ranged inferno.<config;b;botaniaBullets;<br>§lHoming:§r Will home in on the closest target.<br>§lWolfpack:§r Cluster projectile, initially unguided, but splits into 6 small, target-seeking, projectiles on impact.;>
 ie.manual.entry.revolver5=By attaching a bayonet to the revolver, you outfit it with close-quarter-combat capabilities, allowing for melee damage as powerful as an Iron Sword.
 ie.manual.entry.revolver6=The Extended Magazine allows loading 6 more cartridges into the revolver. This magazine does not get refilled by a speedloader.
@@ -499,12 +531,22 @@ ie.manual.entry.lightningrod.name=Lightning Rod
 ie.manual.entry.lightningrod.subtext=Thunderstruck!
 ie.manual.entry.lightningrod0=Lightning is a phenomenon of nature. It contains a huge amount of raw power, and this lightning rod is able to harness that power.<br>By stacking a lot of steel fences on this multiblock, you increase the chance of a lightning bolt striking it during rain or thunderstorms. 
 ie.manual.entry.lightningrod1=When the steel pole is struck, the huge amounts of energy created are stored in the base of the lightning rod and is then slowly distributed to energy connections at the sides.<br><br>The structure is created as shown above, and formed by clicking the central block with an Engineer's Hammer. 
+ie.manual.entry.lightningrod2=You can improve the chances of the Lightning Rod getting struck by creating a "net" of steel fences connected to the topmost fence. 
 
 ie.manual.entry.minerals.name=Mineral Deposits
 ie.manual.entry.minerals.subtext=Oresome
 ie.manual.entry.minerals0=The deposits of Ore found around your world are nothing new to you. What have so far left out of consideration though are mineral veins, which contain a mix of different ores. Due to their wide and thin spread, the average miner can't find them, but a <link;excavator;§o§nspecial §o§nmachine§r> might be able to assist with that.
 ie.manual.entry.minerals1=To find and determine minerals in the world, you will want to craft a Core Sample Drill. This machine, when powered, will drill into the chunk and determine which mineral can be found there. The Drill consumes <config;i;coredrill_consumption> RF/t and takes <config;i;coredrill_time> ticks to fully retrieve and analyze a sample.
 ie.manual.entry.minerals2=The following pages list every type of vein and the ores that can be retrieved from them.
+
+ie.manual.entry.arcfurnace.name=Arc Furnace
+ie.manual.entry.arcfurnace.subtext=Not a reactor 
+ie.manual.entry.arcfurnace0=The Arc Furnace is a massive structure used to quickly smelt metals. It consists of a steel vat topped by electrodes which heat up the metal.
+ie.manual.entry.arcfurnace1=The furnace excels at smelting ores and creating steel due to its high speed and its abiltiy to process multiple items at the same time, but it is also complex in its workings and will require maintenance in order to coninue functioning.<br>Slag must be removed from the machine or it will cease to function, and degrading electrodes need to be replaced over time.
+ie.manual.entry.arcfurnace2=To form the structure, assemble it as shown on the first page, then click the cauldron with an Engineer's Hammer.<br><br>Energy is input through the three connectors at the back, and supplying the controlpanel at the front with a redstone signal will turn off the machine. Right-clicking the panel, 'bucket' or vat will open the interface.
+ie.manual.entry.arcfurnace3=§lInterface:§r<br>The interface may look confusing upon first seeing it, but it's quite straight forward.<br><br>The three slots at the top are for the <link;graphite;§o§nGraphite §o§nElectrodes§r;1>.<br>Electrodes can be inserted into the furnace through the top-center block of the structre.<br>The twelve slots on the left are the input slots for metals and ores. Each slot has a temperature bar next to it, representing the progress of smelting.
+ie.manual.entry.arcfurnace4=The four slots on the right are for "additives", different materials added to the molten metal during the crafting process. An example of these would be adding Coke Dust to melting Iron in order to create Steel.<br>Inputs and additives are inserted through the two hatches at the top of the structure, to the left and right of the electrodes.
+ie.manual.entry.arcfurnace5=The seven slots at the bottom are six output slots and a slot for slag. Outputs are retrieved from the 'bucket' at the front of the structure, slag through the port at the back of the machine. The Arc Furance will automatically push output and slag to connected inventories (this includes Conveyor Belts).
 
 ie.manual.entry.excavator.name=Excavator
 ie.manual.entry.excavator.subtext=Better than Dwarves

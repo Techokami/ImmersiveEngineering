@@ -2,6 +2,7 @@ package blusunrize.immersiveengineering.common.items;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Random;
 
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
@@ -10,12 +11,16 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.StatCollector;
+import net.minecraft.util.WeightedRandomChestContent;
+import net.minecraftforge.common.ChestGenHooks;
 
 import org.lwjgl.input.Keyboard;
 
 import blusunrize.immersiveengineering.api.crafting.BlueprintCraftingRecipe;
+import blusunrize.immersiveengineering.common.gui.ContainerModWorkbench;
 import blusunrize.immersiveengineering.common.gui.IESlot;
 import blusunrize.immersiveengineering.common.gui.InventoryStorageItem;
+import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import blusunrize.immersiveengineering.common.util.Lib;
 import blusunrize.immersiveengineering.common.util.Utils;
 import cpw.mods.fml.relauncher.Side;
@@ -49,6 +54,7 @@ public class ItemEngineersBlueprint extends ItemUpgradeableTool
 	{
 		return this.getUnlocalizedName();
 	}
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean adv)
@@ -68,6 +74,17 @@ public class ItemEngineersBlueprint extends ItemUpgradeableTool
 			else
 				list.add(StatCollector.translateToLocal(Lib.DESC_INFO+"blueprint.creates0"));
 		}
+	}
+
+	@Override
+	public WeightedRandomChestContent getChestGenBase(ChestGenHooks chest, Random random, WeightedRandomChestContent original)
+	{
+		if(random.nextDouble()<.125f)
+		{
+			original.theItemId.setStackDisplayName("Super Special BluPrintz");
+			ItemNBTHelper.setLore(original.theItemId, "Congratulations!","You have found an easter egg!");
+		}
+		return original;
 	}
 
 	@Override
@@ -120,7 +137,7 @@ public class ItemEngineersBlueprint extends ItemUpgradeableTool
 		}
 	}
 
-	public void reduceInputs(BlueprintCraftingRecipe recipe, ItemStack stack, ItemStack crafted)
+	public void reduceInputs(BlueprintCraftingRecipe recipe, ItemStack stack, ItemStack crafted, Container contained)
 	{
 		ItemStack[] stored = this.getContainedItems(stack);
 		ItemStack[] query = new ItemStack[6];
@@ -130,6 +147,12 @@ public class ItemEngineersBlueprint extends ItemUpgradeableTool
 		for(int i=0; i<6; i++)
 			stored[i] = query[i];
 		this.setContainedItems(stack, stored);
+		if (contained instanceof ContainerModWorkbench)
+		{
+			ContainerModWorkbench work = (ContainerModWorkbench) contained;
+			if(work.toolInv!=null)
+				work.toolInv.stackList = query;
+		}
 	}
 
 	@Override

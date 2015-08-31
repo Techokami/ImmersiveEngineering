@@ -66,6 +66,20 @@ public abstract class ManualPages implements IManualPage
 	{
 		return manual;
 	}
+	@Override
+	public void mouseDragged(int x, int y, int clickX, int clickY, int mx, int my, int lastX, int lastY, int button)
+	{
+	}
+//	@Override
+//	public void buttonPressed(GuiManual gui, GuiButton button)
+//	{
+//		if(button instanceof GuiButtonManualLink && GuiManual.activeManual!=null && manual.showEntryInList(manual.getEntry(((GuiButtonManualLink)button).key)))
+//		{
+//			GuiManual.selectedEntry = ((GuiButtonManualLink)button).key;
+//			GuiManual.page = ((GuiButtonManualLink)button).pageLinked;
+//			GuiManual.activeManual.initGui();
+//		}
+//	}
 
 	public static class Text extends ManualPages
 	{
@@ -394,7 +408,8 @@ public abstract class ManualPages implements IManualPage
 					pageButtons.add(new GuiButtonManualNavigation(gui, 100*i+0, x-2,y+yyOff+yOff[i-1]/2-3, 8,10, 0));
 					pageButtons.add(new GuiButtonManualNavigation(gui, 100*i+1, x+122-16,y+yyOff+yOff[i-1]/2-3, 8,10, 1));
 				}
-				yyOff += yOff[i-1]+8;
+				if(this.recipes.get(stack).size()>0)
+					yyOff += yOff[i-1]+8;
 				i++;
 			}
 			super.initPage(gui, x, y+yyOff-2, pageButtons);
@@ -452,16 +467,20 @@ public abstract class ManualPages implements IManualPage
 					totalYOff += yOff[i]+8;
 				}
 			}
+
 			GL11.glTranslated(0, 0, -300);
-			if(highlighted!=null)
-				gui.renderToolTip(highlighted, mx, my);
-			RenderHelper.disableStandardItemLighting();
 			GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 			GL11.glEnable(GL11.GL_BLEND);
-
+			RenderHelper.disableStandardItemLighting();
+			
 			manual.fontRenderer.setUnicodeFlag(uni);
 			if(localizedText!=null&&!localizedText.isEmpty())
 				manual.fontRenderer.drawSplitString(localizedText, x,y+totalYOff-2, 120, manual.getTextColour());
+
+			manual.fontRenderer.setUnicodeFlag(false);
+			if(highlighted!=null)
+				gui.renderToolTip(highlighted, mx, my);
+			RenderHelper.disableStandardItemLighting();
 		}
 
 		@Override
@@ -632,15 +651,17 @@ public abstract class ManualPages implements IManualPage
 			}
 
 			GL11.glTranslated(0, 0, -300);
-			if(highlighted!=null)
-				gui.renderToolTip(highlighted, mx, my);
-			RenderHelper.disableStandardItemLighting();
 			GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 			GL11.glEnable(GL11.GL_BLEND);
 
 			manual.fontRenderer.setUnicodeFlag(uni);
 			if(localizedText!=null&&!localizedText.isEmpty())
 				manual.fontRenderer.drawSplitString(localizedText, x,y+yOff+2, 120, manual.getTextColour());
+
+			manual.fontRenderer.setUnicodeFlag(false);
+			if(highlighted!=null)
+				gui.renderToolTip(highlighted, mx, my);
+			RenderHelper.disableStandardItemLighting();
 		}
 
 		@Override

@@ -90,15 +90,13 @@ public class ItemRevolver extends ItemUpgradeableTool
 	{
 		for(int i=0;i<2;i++)
 			list.add(new ItemStack(this,1,i));
-
-		for(Map.Entry<String, SpecialRevolver> e : specialRevolversByTag.entrySet())
-		{
-			ItemStack stack = new ItemStack(this,1,0);
-			applySpecialCrafting(stack, e.getValue());
-			this.recalculateUpgrades(stack);
-			list.add(stack);
-		}
-
+		//		for(Map.Entry<String, SpecialRevolver> e : specialRevolversByTag.entrySet())
+		//		{
+		//			ItemStack stack = new ItemStack(this,1,0);
+		//			applySpecialCrafting(stack, e.getValue());
+		//			this.recalculateUpgrades(stack);
+		//			list.add(stack);
+		//		}
 	}
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean adv)
@@ -293,9 +291,17 @@ public class ItemRevolver extends ItemUpgradeableTool
 		render.add("barrel");
 		render.add("cosmetic_compensator");
 		String tag = ItemNBTHelper.getString(revolver, "elite");
+		String flavour = ItemNBTHelper.getString(revolver, "flavour");
 		if(tag!=null && !tag.isEmpty() && specialRevolversByTag.containsKey(tag))
 		{
 			SpecialRevolver r = specialRevolversByTag.get(tag);
+			if(r!=null && r.renderAdditions!=null)
+				for(String ss : r.renderAdditions)
+					render.add(ss);
+		}
+		else if(flavour!=null && !flavour.isEmpty() && specialRevolversByTag.containsKey(flavour))
+		{
+			SpecialRevolver r = specialRevolversByTag.get(flavour);
 			if(r!=null && r.renderAdditions!=null)
 				for(String ss : r.renderAdditions)
 					render.add(ss);
@@ -309,7 +315,10 @@ public class ItemRevolver extends ItemUpgradeableTool
 			render.add("player_bayonet");
 		}
 		if(upgrades.getBoolean("electro"))
-			render.add("player_electro");
+		{
+			render.add("player_electro_0");
+			render.add("player_electro_1");
+		}
 		return render.toArray(new String[render.size()]);
 	}
 

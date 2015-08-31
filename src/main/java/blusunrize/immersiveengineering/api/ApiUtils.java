@@ -2,13 +2,9 @@ package blusunrize.immersiveengineering.api;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
-import blusunrize.immersiveengineering.api.energy.WireType;
-import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -19,6 +15,9 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
+import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
+import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
+import blusunrize.immersiveengineering.api.energy.WireType;
 import cpw.mods.fml.common.registry.GameData;
 
 public class ApiUtils
@@ -56,6 +55,7 @@ public class ApiUtils
 		catch (NullPointerException e) {}
 		return "";
 	}
+
 
 	public static ChunkCoordinates toCC(Object object)
 	{
@@ -117,6 +117,8 @@ public class ApiUtils
 			double y1 = a * Math.cosh((( Math.sqrt(x1*x1+z1*z1) )-p)/a)+q;
 			vex[i] = Vec3.createVectorHelper(start.xCoord+x1, start.yCoord+y1, start.zCoord+z1);
 		}
+		vex[vertices-1] = Vec3.createVectorHelper(end.xCoord, end.yCoord, end.zCoord);
+		
 		return vex;
 	}
 
@@ -140,16 +142,18 @@ public class ApiUtils
 			return new ItemStack((Item)input);
 		else if(input instanceof Block)
 			return new ItemStack((Block)input);
+		else if(input instanceof ArrayList)
+			return input;
 		else if(input instanceof String)
 		{
-			List<ItemStack> l = OreDictionary.getOres((String)input);
+			ArrayList<ItemStack> l = OreDictionary.getOres((String)input);
 			if(!l.isEmpty())
 				return l;
 			else
 				return null;
 		}
 		else
-			throw new RuntimeException("Recipe Inputs must always be ItemStack, Item, Block or String (OreDictioanry name)");
+			throw new RuntimeException("Recipe Inputs must always be ItemStack, Item, Block or String (OreDictionary name), "+input+" is invalid");
 	}
 
 	public static Map<String, Integer> sortMap(Map<String, Integer> map, boolean inverse)
