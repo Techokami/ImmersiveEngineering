@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -55,7 +56,7 @@ public class ClientUtils
 	{
 		if(tile.getWorldObj()!=null && tile instanceof IImmersiveConnectable)
 		{
-			List<Connection> outputs = ImmersiveNetHandler.INSTANCE.getConnections(tile.getWorldObj(), Utils.toCC(tile));
+			ConcurrentSkipListSet<Connection> outputs = ImmersiveNetHandler.INSTANCE.getConnections(tile.getWorldObj(), Utils.toCC(tile));
 			if(outputs!=null)
 			{
 				Iterator<ImmersiveNetHandler.Connection> itCon = outputs.iterator();
@@ -233,6 +234,39 @@ public class ClientUtils
 		return world.getLightBrightnessForSkyBlocks((int)Math.round(x), (int)Math.round(y), (int)Math.round(z), 0);
 	}
 
+	
+	public static void tessellateBox(double xMin, double yMin, double zMin, double xMax, double yMax, double zMax, IIcon icon)
+	{
+		tes().addVertexWithUV(xMin,yMin,zMax, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(zMax*16));
+		tes().addVertexWithUV(xMin,yMin,zMin, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(zMin*16));
+		tes().addVertexWithUV(xMax,yMin,zMin, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(zMin*16));
+		tes().addVertexWithUV(xMax,yMin,zMax, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(zMax*16));
+		
+		tes().addVertexWithUV(xMin,yMax,zMin, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(zMin*16));
+		tes().addVertexWithUV(xMin,yMax,zMax, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(zMax*16));
+		tes().addVertexWithUV(xMax,yMax,zMax, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(zMax*16));
+		tes().addVertexWithUV(xMax,yMax,zMin, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(zMin*16));
+		
+		tes().addVertexWithUV(xMax,yMin,zMin, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMin,yMin,zMin, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMin,yMax,zMin, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(yMin*16));
+		tes().addVertexWithUV(xMax,yMax,zMin, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(yMin*16));
+		
+		tes().addVertexWithUV(xMin,yMin,zMax, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMax,yMin,zMax, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMax,yMax,zMax, icon.getInterpolatedU(xMin*16),icon.getInterpolatedV(yMin*16));
+		tes().addVertexWithUV(xMin,yMax,zMax, icon.getInterpolatedU(xMax*16),icon.getInterpolatedV(yMin*16));
+		
+		tes().addVertexWithUV(xMin,yMin,zMin, icon.getInterpolatedU(zMin*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMin,yMin,zMax, icon.getInterpolatedU(zMax*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMin,yMax,zMax, icon.getInterpolatedU(zMax*16),icon.getInterpolatedV(yMin*16));
+		tes().addVertexWithUV(xMin,yMax,zMin, icon.getInterpolatedU(zMin*16),icon.getInterpolatedV(yMin*16));
+		
+		tes().addVertexWithUV(xMax,yMin,zMax, icon.getInterpolatedU(zMax*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMax,yMin,zMin, icon.getInterpolatedU(zMin*16),icon.getInterpolatedV(yMax*16));
+		tes().addVertexWithUV(xMax,yMax,zMin, icon.getInterpolatedU(zMin*16),icon.getInterpolatedV(yMin*16));
+		tes().addVertexWithUV(xMax,yMax,zMax, icon.getInterpolatedU(zMax*16),icon.getInterpolatedV(yMin*16));
+	}
 
 	// GENERAL METHODS
 	static HashMap<String, ResourceLocation> resourceMap = new HashMap<String, ResourceLocation>();
@@ -586,7 +620,7 @@ public class ClientUtils
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
 	}
-	public static void drawTexturedRect(int x, int y, int w, int h, double... uv)
+	public static void drawTexturedRect(float x, float y, float w, float h, double... uv)
 	{
 		tes().startDrawingQuads();
 		tes().addVertexWithUV(x, y+h, 0, uv[0], uv[3]);
@@ -600,7 +634,7 @@ public class ClientUtils
 		double[] d_uv = new double[]{uv[0]/picSize,uv[1]/picSize, uv[2]/picSize,uv[3]/picSize};
 		drawTexturedRect(x,y,w,h, d_uv);
 	}
-	public static void drawRepeatedFluidIcon(Fluid fluid, int x, int y, int w, int h)
+	public static void drawRepeatedFluidIcon(Fluid fluid, float x, float y, float w, float h)
 	{
 		bindTexture(TextureMap.locationBlocksTexture.toString());
 		IIcon icon = fluid.getIcon();
@@ -612,12 +646,12 @@ public class ClientUtils
 				drawRepeatedIcon(x,y,w,h, iW, iH, icon.getMinU(),icon.getMaxU(), icon.getMinV(),icon.getMaxV());
 		}
 	}
-	public static void drawRepeatedIcon(int x, int y, int w, int h, int iconWidth, int iconHeight, float uMin, float uMax, float vMin, float vMax)
+	public static void drawRepeatedIcon(float x, float y, float w, float h, int iconWidth, int iconHeight, float uMin, float uMax, float vMin, float vMax)
 	{
-		int iterMaxW = w/iconWidth;
-		int iterMaxH = h/iconHeight;
-		int leftoverW = w%iconWidth;
-		int leftoverH = h%iconHeight;
+		int iterMaxW = (int)(w/iconWidth);
+		int iterMaxH = (int)(h/iconHeight);
+		float leftoverW = w%iconWidth;
+		float leftoverH = h%iconHeight;
 		float leftoverWf = leftoverW/(float)iconWidth;
 		float leftoverHf = leftoverH/(float)iconHeight;
 		float iconUDif = uMax-uMin;

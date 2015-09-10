@@ -1,8 +1,12 @@
 package blusunrize.immersiveengineering.client;
 
+import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import javax.imageio.ImageIO;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -10,6 +14,7 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -42,8 +47,10 @@ import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
 import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.api.tool.IDrillHead;
+import blusunrize.immersiveengineering.client.fx.ParticleRenderer;
 import blusunrize.immersiveengineering.client.gui.GuiBlastFurnace;
 import blusunrize.immersiveengineering.client.models.ModelIEObj;
+import blusunrize.immersiveengineering.client.render.TileRenderArcFurnace;
 import blusunrize.immersiveengineering.common.Config;
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces;
@@ -78,6 +85,8 @@ public class ClientEventHandler
 			if(IEContent.IEBiodiesel)
 				IEContent.fluidBiodiesel.setIcons(event.map.registerIcon("immersiveengineering:fluid/biodiesel_still"), event.map.registerIcon("immersiveengineering:fluid/biodiesel_flow"));
 			WireType.iconDefaultWire = event.map.registerIcon("immersiveengineering:wire");
+			TileRenderArcFurnace.hotMetal_flow = event.map.registerIcon("immersiveengineering:fluid/hotMetal_flow");
+			TileRenderArcFurnace.hotMetal_still = event.map.registerIcon("immersiveengineering:fluid/hotMetal_still");
 		}
 		if(event.map.getTextureType()==Config.getInt("revolverSheetID"))
 		{
@@ -92,6 +101,24 @@ public class ClientEventHandler
 		{
 			WavefrontObject model = modelIE.rebindModel();
 			rebindUVsToIcon(model, modelIE.getBlockIcon());
+		}
+
+		if(event.map.getTextureType()==Config.getInt("revolverSheetID"))
+		{
+			try {
+				IELogger.debug("TEST-udafe");
+				TextureAtlasSprite tal = (TextureAtlasSprite)event.map.registerIcon("immersiveengineering:revolver");
+				URL url = new URL("http://i.imgur.com/bU3bEDe.png");
+				BufferedImage img = ImageIO.read(url);
+				IELogger.debug("url = "+url);
+				IELogger.debug("img = "+img);
+				IELogger.debug("Loading sprite");
+				tal.loadSprite(new BufferedImage[]{img}, null, false);
+				IELogger.debug("sprite loaded");
+				((ItemRevolver)IEContent.itemRevolver).revolverDefaultTexture=tal;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -183,6 +210,7 @@ public class ClientEventHandler
 	public void lastWorldRender(RenderWorldLastEvent event)
 	{
 		connectionsRendered = false;
+		ParticleRenderer.dispatch();
 	}
 	static boolean connectionsRendered = false;
 	public static void renderAllIEConnections(float partial)
@@ -260,19 +288,6 @@ public class ClientEventHandler
 						String s = StatCollector.translateToLocalFormatted(Lib.DESC_INFO+"attachedTo", link[1],link[2],link[3]);
 						ClientUtils.font().drawString(s, event.resolution.getScaledWidth()/2 - ClientUtils.font().getStringWidth(s)/2, event.resolution.getScaledHeight()-GuiIngameForge.left_height-10, WireType.ELECTRUM.getColour(null), true);
 					}
-				}
-
-			}
-			else if( Utils.isHammer(ClientUtils.mc().thePlayer.getCurrentEquippedItem()))
-			{
-				MovingObjectPosition mop = ClientUtils.mc().objectMouseOver;
-				if(mop!=null && ClientUtils.mc().thePlayer.worldObj.getTileEntity(mop.blockX, mop.blockY, mop.blockZ) instanceof IEBlockInterfaces.IBlockOverlayText)
-				{
-					IEBlockInterfaces.IBlockOverlayText overlayBlock = (IBlockOverlayText) ClientUtils.mc().thePlayer.worldObj.getTileEntity(mop.blockX, mop.blockY, mop.blockZ);
-					String[] s = overlayBlock.getOverlayText(mop);
-					if(s!=null && s.length>0)
-						for(int is=0; is<s.length; is++)
-							ClientUtils.font().drawString(s[is], event.resolution.getScaledWidth()/2+8, event.resolution.getScaledHeight()/2+8+is*ClientUtils.font().FONT_HEIGHT, 0xcccccc, true);
 				}
 
 			}
@@ -361,6 +376,21 @@ public class ClientEventHandler
 					RenderHelper.disableStandardItemLighting();
 				}
 				GL11.glPopMatrix();
+			}
+
+			boolean hammer = Utils.isHammer(ClientUtils.mc().thePlayer.getCurrentEquippedItem());
+			MovingObjectPosition mop = ClientUtils.mc().objectMouseOver;
+			if(mop!=null && ClientUtils.mc().thePlayer.worldObj.getTileEntity(mop.blockX, mop.blockY, mop.blockZ) instanceof IEBlockInterfaces.IBlockOverlayText)
+			{
+				IEBlockInterfaces.IBlockOverlayText overlayBlock = (IBlockOverlayText) ClientUtils.mc().thePlayer.worldObj.getTileEntity(mop.blockX, mop.blockY, mop.blockZ);
+				String[] text = overlayBlock.getOverlayText(ClientUtils.mc().thePlayer, mop, hammer);
+				if(text!=null && text.length>0)
+				{
+					int i = 0;
+					for(String s : text)
+						if(s!=null)
+							ClientUtils.font().drawString(s, event.resolution.getScaledWidth()/2+8, event.resolution.getScaledHeight()/2+8+(i++)*ClientUtils.font().FONT_HEIGHT, 0xcccccc, true);
+				}
 			}
 		}
 	}

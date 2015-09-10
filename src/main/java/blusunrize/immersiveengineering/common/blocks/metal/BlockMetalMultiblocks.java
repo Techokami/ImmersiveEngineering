@@ -67,7 +67,7 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	public void getSubBlocks(Item item, CreativeTabs tab, List list)
 	{
 		for(int i=0; i<subNames.length; i++)
-			if(i!=META_dieselGenerator && i!=META_refinery && i!=META_crusher && i!=META_bucketWheel && i!=META_excavator && i!=META_arcFurnace)
+			if(i!=META_dieselGenerator && i!=META_refinery && i!=META_crusher && i!=META_bucketWheel && i!=META_excavator && i!=META_arcFurnace && i!=META_tank && i!=META_silo)
 				list.add(new ItemStack(item, 1, i));
 	}
 
@@ -237,11 +237,23 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 				if(master==null)
 					master = tank;
 				if(Utils.fillFluidHandlerWithPlayerItem(world, master, player))
+				{
+					master.markDirty();
+					world.markBlockForUpdate(master.xCoord,master.yCoord,master.zCoord);
 					return true;
+				}
 				if(Utils.fillPlayerItemFromFluidHandler(world, master, player, master.tank.getFluid()))
+				{
+					master.markDirty();
+					world.markBlockForUpdate(master.xCoord,master.yCoord,master.zCoord);
 					return true;
+				}
 				if(player.getCurrentEquippedItem()!=null && player.getCurrentEquippedItem().getItem() instanceof IFluidContainerItem)
+				{
+					master.markDirty();
+					world.markBlockForUpdate(master.xCoord,master.yCoord,master.zCoord);
 					return true;
+				}
 			}
 			return true;
 		}
@@ -251,8 +263,6 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 			TileEntitySilo master = te.master();
 			if(master==null)
 				master = te;
-			System.out.println("ident: "+master.identStack);
-			System.out.println("amount: "+master.storageAmount);
 		}
 		return false;
 	}

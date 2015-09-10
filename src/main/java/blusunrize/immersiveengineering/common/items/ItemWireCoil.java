@@ -1,6 +1,7 @@
 package blusunrize.immersiveengineering.common.items;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -14,9 +15,10 @@ import blusunrize.immersiveengineering.api.TargetingInfo;
 import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
 import blusunrize.immersiveengineering.api.energy.IWireCoil;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
-import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
+import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.common.IESaveData;
+import blusunrize.immersiveengineering.common.util.IEAchievements;
 import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import blusunrize.immersiveengineering.common.util.Lib;
 import blusunrize.immersiveengineering.common.util.Utils;
@@ -101,7 +103,7 @@ public class ItemWireCoil extends ItemIEBase implements IWireCoil
 					boolean connectionExists = false;
 					if(nodeHere!=null && nodeLink!=null)
 					{
-						List<Connection> outputs = ImmersiveNetHandler.INSTANCE.getConnections(world, Utils.toCC(nodeHere));
+						ConcurrentSkipListSet<Connection> outputs = ImmersiveNetHandler.INSTANCE.getConnections(world, Utils.toCC(nodeHere));
 						if(outputs!=null)
 							for(ImmersiveNetHandler.Connection con : outputs)
 							{
@@ -113,8 +115,8 @@ public class ItemWireCoil extends ItemIEBase implements IWireCoil
 						player.addChatMessage(new ChatComponentTranslation(Lib.CHAT_WARN+"connectionExists"));
 					else
 					{
-						Vec3 rtOff0 = nodeHere.getRaytraceOffset().addVector(x, y, z);
-						Vec3 rtOff1 = nodeLink.getRaytraceOffset().addVector(pos[1], pos[2], pos[3]);
+						Vec3 rtOff0 = nodeHere.getRaytraceOffset(nodeLink).addVector(x, y, z);
+						Vec3 rtOff1 = nodeLink.getRaytraceOffset(nodeHere).addVector(pos[1], pos[2], pos[3]);
 						boolean canSee = Utils.canBlocksSeeOther(world, new ChunkCoordinates(x,y,z), new ChunkCoordinates(pos[1], pos[2], pos[3]), rtOff0,rtOff1);
 						if(canSee)
 						{
@@ -123,7 +125,8 @@ public class ItemWireCoil extends ItemIEBase implements IWireCoil
 							nodeHere.connectCable(type, target);
 							nodeLink.connectCable(type, targetLink);
 							IESaveData.setDirty(world.provider.dimensionId);
-
+							player.triggerAchievement(IEAchievements.connectWire);
+							
 							if(!player.capabilities.isCreativeMode)
 								stack.stackSize--;
 							((TileEntity)nodeHere).markDirty();

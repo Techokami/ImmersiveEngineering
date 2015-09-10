@@ -87,15 +87,15 @@ public class IERecipes
 				BlueprintCraftingRecipe.addRecipe("specialBullet", new ItemStack(IEContent.itemBullet,1,7), new ItemStack(IEContent.itemBullet,1,0),Items.gunpowder,"ingotTerrasteel");
 			else
 				BlueprintCraftingRecipe.addRecipe("specialBullet", new ItemStack(IEContent.itemBullet,1,7), new ItemStack(IEContent.itemBullet,1,0),Items.gunpowder,"nuggetTerrasteel","nuggetTerrasteel");
-			BlueprintCraftingRecipe.addRecipe("specialBullet", new ItemStack(IEContent.itemBullet,1,8), new ItemStack(IEContent.itemBullet,1,1),Items.gunpowder, new ItemStack(IEContent.itemBullet,6,7));
+			BlueprintCraftingRecipe.addRecipe("specialBullet", new ItemStack(IEContent.itemBullet,1,8), new ItemStack(IEContent.itemBullet,1,1),Items.gunpowder, new ItemStack(IEContent.itemBullet,4,7));
 			Config.setBoolean("botaniaBullets", true);
 		}
-		BlueprintCraftingRecipe.addRecipe("specialBullet", new ItemStack(IEContent.itemBullet,1,10), new ItemStack(IEContent.itemBullet,1,1),Items.gunpowder,"dustQuartz",Items.glass_bottle);
-		
+		BlueprintCraftingRecipe.addRecipe("specialBullet", new ItemStack(IEContent.itemBullet,1,10), new ItemStack(IEContent.itemBullet,1,0),Items.gunpowder,"dustQuartz",Items.glass_bottle);
+
 		BlueprintCraftingRecipe.addVillagerTrade("bullet", new ItemStack(Items.emerald,1,2));
 		BlueprintCraftingRecipe.addVillagerTrade("specialBullet", new ItemStack(Items.emerald,1,7));
 		GameRegistry.addRecipe(new RecipePotionBullets());
-		
+
 		int blueprint = BlueprintCraftingRecipe.blueprintCategories.indexOf("bullet");
 		addOredictRecipe(new ItemStack(IEContent.itemBlueprint,1,blueprint), "JKL","DDD","PPP", 'J',Items.gunpowder,'K',"ingotCopper",'L',Items.gunpowder, 'D',"dyeBlue",'P',Items.paper);
 
@@ -146,6 +146,7 @@ public class IERecipes
 
 		for (ItemStack container : Utils.getContainersFilledWith(new FluidStack(IEContent.fluidCreosote,1000)))
 			addOredictRecipe(new ItemStack(IEContent.blockWoodenDecoration,8,0), "WWW","WCW","WWW", 'W',"plankWood",'C',container);
+		addOredictRecipe(new ItemStack(IEContent.blockWoodenDecoration,1,0), "W","W", 'W',new ItemStack(IEContent.blockWoodenDecoration,1,2));
 		addOredictRecipe(new ItemStack(IEContent.blockWoodenDecoration,2,1), "SSS","SSS", 'S',"treatedStick");
 		addOredictRecipe(new ItemStack(IEContent.blockWoodenDecoration,6,2), "WWW", 'W',treatedWood);
 		addOredictRecipe(new ItemStack(IEContent.blockWoodenDecoration,6,5), "WWW"," S ","S S", 'W',treatedWood,'S',new ItemStack(IEContent.blockWoodenDecoration,1,1));
@@ -158,8 +159,8 @@ public class IERecipes
 		addOredictRecipe(new ItemStack(IEContent.blockWoodenDevice,1,3), "PPP","PIP","PPP", 'P',new ItemStack(IEContent.itemMaterial,1,5),'I',"ingotSteel");
 		addOredictRecipe(new ItemStack(IEContent.blockWoodenDevice,1,4), "WWW","W W","WWW", 'W',treatedWood);
 		addOredictRecipe(new ItemStack(IEContent.blockWoodenDevice,1,5), "WWW","B F", 'W',new ItemStack(IEContent.blockWoodenDecoration,1,2),'B',"craftingTableWood",'F',new ItemStack(IEContent.blockWoodenDecoration,1,1));
-		addOredictRecipe(new ItemStack(IEContent.blockWoodenDevice,1,6), "WWW","W W","SSS", 'W',treatedWood,'S',new ItemStack(IEContent.blockWoodenDecoration,1,2));
-		
+		addOredictRecipe(new ItemStack(IEContent.blockWoodenDevice,1,6), "SSS","W W","WWW", 'W',treatedWood,'S',new ItemStack(IEContent.blockWoodenDecoration,1,2));
+
 		addOredictRecipe(new ItemStack(IEContent.blockStoneDecoration,6,0), "CCC","HHH","CCC", 'C',Items.clay_ball,'H',new ItemStack(IEContent.itemMaterial,1,3));
 		addOredictRecipe(new ItemStack(IEContent.blockStoneDecoration,2,1), "CBC","BSB","CBC", 'S',"sandstone",'C',Items.clay_ball,'B',"ingotBrick");
 		addOredictRecipe(new ItemStack(IEContent.blockStoneDecoration,2,2), "NBN","BDB","NBN", 'D',Items.blaze_powder,'N',"ingotBrickNether",'B',"ingotBrick");
@@ -210,6 +211,7 @@ public class IERecipes
 		addOredictRecipe(new ItemStack(IEContent.blockMetalDecoration, 2,BlockMetalDecoration.META_lightEngineering), "IGI","CCC","IGI", 'I',"ingotIron",'C',"ingotCopper",'G',componentIron);
 		addOredictRecipe(new ItemStack(IEContent.blockMetalDecoration, 8,BlockMetalDecoration.META_connectorStructural), "FIF","III", 'I',"ingotSteel",'F',new ItemStack(IEContent.blockMetalDecoration,1,0));
 		addOredictRecipe(new ItemStack(IEContent.blockMetalDecoration, 4,BlockMetalDecoration.META_wallMount), "WW","WF","W ", 'W',new ItemStack(IEContent.blockMetalDecoration,1,1),'F',new ItemStack(IEContent.blockMetalDecoration,1,0));
+		addOredictRecipe(new ItemStack(IEContent.blockMetalDecoration, 4,BlockMetalDecoration.META_sheetMetal), " I ","IHI"," I ", 'I',"ingotIron",'H',new ItemStack(IEContent.itemTool,1,0));
 
 		addOredictRecipe(new ItemStack(IEContent.blockMetalMultiblocks, 2,BlockMetalMultiblocks.META_squeezer), "IPI","GDG","IPI", 'I',"ingotIron",'D',"dyeGreen",'G',componentIron,'P',Blocks.piston);
 		addOredictRecipe(new ItemStack(IEContent.blockMetalMultiblocks, 2,BlockMetalMultiblocks.META_fermenter), "IPI","GDG","IPI", 'I',"ingotIron",'D',"dyeBlue",'G',componentIron,'P',Blocks.piston);

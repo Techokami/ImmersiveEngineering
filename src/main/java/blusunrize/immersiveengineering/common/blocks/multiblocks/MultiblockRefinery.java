@@ -34,6 +34,8 @@ public class MultiblockRefinery implements IMultiblock
 					}
 					else if(h==1 && w==2 && l==2)
 						m = BlockMetalDecoration.META_lightEngineering;
+					else if(h>0 && w!=2)
+						m = BlockMetalDecoration.META_sheetMetal;
 
 
 					structure[h][w][l]= new ItemStack(IEContent.blockMetalDecoration,1,m);
@@ -103,6 +105,8 @@ public class MultiblockRefinery implements IMultiblock
 					}
 					else if(h==0 && w==0 && l==2)
 						m = BlockMetalDecoration.META_lightEngineering;
+					else if(h>-1 && w!=0)
+						m = BlockMetalDecoration.META_sheetMetal;
 
 					int xx = startX+ (side==4?l: side==5?-l: side==2?-w : w);
 					int yy = startY+ h;
@@ -140,6 +144,7 @@ public class MultiblockRefinery implements IMultiblock
 		return new ItemStack[]{
 				new ItemStack(IEContent.blockMetalDecoration,8,BlockMetalDecoration.META_scaffolding),
 				new ItemStack(IEContent.blockMetalDecoration,6,BlockMetalDecoration.META_lightEngineering),
-				new ItemStack(IEContent.blockMetalDecoration,27,BlockMetalDecoration.META_heavyEngineering)};
+				new ItemStack(IEContent.blockMetalDecoration,24,BlockMetalDecoration.META_sheetMetal),
+				new ItemStack(IEContent.blockMetalDecoration,3,BlockMetalDecoration.META_heavyEngineering)};
 	}
 }

@@ -24,6 +24,7 @@ import blusunrize.immersiveengineering.api.energy.DieselHandler;
 import blusunrize.immersiveengineering.api.energy.ThermoelectricHandler;
 import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.api.tool.ExcavatorHandler;
+import blusunrize.immersiveengineering.common.blocks.BlockFakeLight;
 import blusunrize.immersiveengineering.common.blocks.BlockIEBase;
 import blusunrize.immersiveengineering.common.blocks.BlockIEBase.BlockIESimple;
 import blusunrize.immersiveengineering.common.blocks.BlockIESlabs;
@@ -49,9 +50,11 @@ import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConveyorSor
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCrusher;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityDieselGenerator;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityDynamo;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityElectricLantern;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityEnergyMeter;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityExcavator;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFermenter;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFloodLight;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFurnaceHeater;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityLantern;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityLightningRod;
@@ -115,6 +118,7 @@ import blusunrize.immersiveengineering.common.items.ItemRevolver;
 import blusunrize.immersiveengineering.common.items.ItemSkyhook;
 import blusunrize.immersiveengineering.common.items.ItemToolUpgrade;
 import blusunrize.immersiveengineering.common.items.ItemWireCoil;
+import blusunrize.immersiveengineering.common.util.IEAchievements;
 import blusunrize.immersiveengineering.common.util.IELogger;
 import blusunrize.immersiveengineering.common.world.IEWorldGen;
 import blusunrize.immersiveengineering.common.world.VillageEngineersHouse;
@@ -138,6 +142,7 @@ public class IEContent
 	public static BlockIEBase blockStoneDevice;
 	public static BlockIEBase blockStoneDecoration;
 	public static Block blockCrop;
+	public static Block blockFakeLight;
 	public static ItemIEBase itemMetal;
 	public static ItemIEBase itemMaterial;
 	public static ItemIEBase itemSeeds;
@@ -176,6 +181,7 @@ public class IEContent
 		blockStoneDevice = new BlockStoneDevices();
 		blockStoneDecoration = new BlockStoneDecoration();
 		blockCrop = new BlockIECrop("hemp", "0B","1B","2B","3B","4B","0T");
+		blockFakeLight = new BlockFakeLight();
 
 		itemMetal = new ItemIEBase("metal", 64,
 				"ingotCopper","ingotAluminum","ingotLead","ingotSilver","ingotNickel","ingotConstantan","ingotElectrum","ingotSteel",  
@@ -353,6 +359,8 @@ public class IEContent
 		registerTile(TileEntityBreakerSwitch.class);
 		registerTile(TileEntitySkycrateDispenser.class);
 		registerTile(TileEntityEnergyMeter.class);
+		registerTile(TileEntityElectricLantern.class);
+		registerTile(TileEntityFloodLight.class);
 
 
 		registerTile(TileEntityCokeOven.class);
@@ -434,7 +442,7 @@ public class IEContent
 		ExcavatorHandler.addMineral("Lead", 10, .15f, new String[]{"oreLead","oreSilver","denseoreLead"}, new float[]{.55f,.4f,.05f});
 		ExcavatorHandler.addMineral("Silver", 10, .2f, new String[]{"oreSilver","oreLead","denseoreSilver"}, new float[]{.55f,.4f,.05f});
 		ExcavatorHandler.addMineral("Lapis", 10, .2f, new String[]{"oreLapis","oreIron","oreSulfur","denseoreLapis"}, new float[]{.65f,.275f,.025f,.05f});
-		ExcavatorHandler.addMineral("Coal", 25, .1f, new String[]{"oreCoal","denseoreCoal","oreDiamond"}, new float[]{.94f,.1f,.01f});
+		ExcavatorHandler.addMineral("Coal", 25, .1f, new String[]{"oreCoal","denseoreCoal","oreDiamond","oreEmerald"}, new float[]{.92f,.1f,.015f,.015f});
 
 
 		MultiblockHandler.registerMultiblock(MultiblockCokeOven.instance);
@@ -451,6 +459,8 @@ public class IEContent
 		MultiblockHandler.registerMultiblock(MultiblockSheetmetalTank.instance);
 		MultiblockHandler.registerMultiblock(MultiblockSilo.instance);
 
+		IEAchievements.init();
+		
 		//Railcraft Compat
 		if(Loader.isModLoaded("Railcraft"))
 		{

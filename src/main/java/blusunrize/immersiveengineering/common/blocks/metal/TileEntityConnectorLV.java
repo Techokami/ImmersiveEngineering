@@ -2,19 +2,22 @@ package blusunrize.immersiveengineering.common.blocks.metal;
 
 import static blusunrize.immersiveengineering.common.util.Utils.toIIC;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.common.util.ForgeDirection;
+import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.AbstractConnection;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
 import blusunrize.immersiveengineering.api.energy.WireType;
 import blusunrize.immersiveengineering.common.Config;
 import blusunrize.immersiveengineering.common.blocks.TileEntityImmersiveConnectable;
+import blusunrize.immersiveengineering.common.util.IELogger;
 import blusunrize.immersiveengineering.common.util.Lib;
 import blusunrize.immersiveengineering.common.util.Utils;
 import blusunrize.immersiveengineering.common.util.compat.GregTechHelper;
@@ -86,9 +89,10 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 	{
 		ForgeDirection fd = ForgeDirection.getOrientation(facing);
 		TileEntity capacitor = worldObj.getTileEntity(xCoord+fd.offsetX, yCoord+fd.offsetY, zCoord+fd.offsetZ);
-
 		if(capacitor instanceof IEnergyReceiver && ((IEnergyReceiver)capacitor).canConnectEnergy(fd.getOpposite()))
-			return ((IEnergyReceiver)capacitor).receiveEnergy(fd.getOpposite(), amount, simulate);
+		{
+			return  ((IEnergyReceiver)capacitor).receiveEnergy(fd.getOpposite(), amount, simulate);
+		}
 		else if(Lib.IC2 && IC2Helper.isAcceptingEnergySink(capacitor, this, fd.getOpposite()))
 		{
 			double left = IC2Helper.injectEnergy(capacitor, fd.getOpposite(), ModCompatability.convertRFtoEU(amount, getIC2Tier()), canTakeHV()?(256*256): canTakeMV()?(128*128) : (32*32), simulate);
@@ -120,7 +124,7 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 	}
 
 	@Override
-	public Vec3 getRaytraceOffset()
+	public Vec3 getRaytraceOffset(IImmersiveConnectable link)
 	{
 		ForgeDirection fd = ForgeDirection.getOrientation(facing).getOpposite();
 		return Vec3.createVectorHelper(.5+fd.offsetX*.0625, .5+fd.offsetY*.0625, .5+fd.offsetZ*.0625);
@@ -175,28 +179,67 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 		return 0;
 	}
 
-	public int transferEnergy(int energy, boolean simulate, int energyType)
+	public int transferEnergy(int energy, boolean simulate, final int energyType)
 	{
 		int received = 0;
 		if(!worldObj.isRemote)
 		{
-			List<AbstractConnection> outputs = ImmersiveNetHandler.INSTANCE.getIndirectEnergyConnections(Utils.toCC(this), worldObj);
+			ConcurrentSkipListSet<AbstractConnection> outputs = ImmersiveNetHandler.INSTANCE.getIndirectEnergyConnections(Utils.toCC(this), worldObj);
 			int powerLeft = Math.min(Math.min(getMaxOutput(),getMaxInput()), energy);
+			final int powerForSort = powerLeft;
+			
+			IELogger.debug("");
+			IELogger.debug("Sending power: "+powerLeft+" at "+xCoord+","+yCoord+","+zCoord);
 			if(outputs.size()<1)
 				return 0;
-			int output = powerLeft/outputs.size();
+
+			int sum = 0;
+			HashMap<AbstractConnection,Integer> powerSorting = new HashMap<AbstractConnection,Integer>();
 			for(AbstractConnection con : outputs)
 				if(con!=null && con.cableType!=null && toIIC(con.end, worldObj)!=null)
 				{
-					int tempR = toIIC(con.end,worldObj).outputEnergy(Math.min(output,con.cableType.getTransferRate()), true, energyType);
-					int r = tempR;
-					tempR -= (int) Math.max(0, Math.floor(tempR*con.getAverageLossRate()));
-					toIIC(con.end, worldObj).outputEnergy(tempR, simulate, energyType);
-					received += r;
-					powerLeft -= r;
-					if(powerLeft<=0)
-						break;
+					int atmOut = Math.min(powerForSort,con.cableType.getTransferRate());
+					int tempR = toIIC(con.end,worldObj).outputEnergy(atmOut, true, energyType);
+					IELogger.debug("trying "+atmOut+"RF for: "+con.end+", accepted "+tempR);
+					if(tempR>0)
+					{
+						IELogger.debug("Can output "+tempR+"RF to "+con.end);
+						powerSorting.put(con, tempR);
+						sum += tempR;
+					}
 				}
+
+			if(sum>0)
+				for(AbstractConnection con : powerSorting.keySet())
+					if(con!=null && con.cableType!=null && toIIC(con.end, worldObj)!=null)
+					{
+						//					int output = powerLeft/outputs.size();
+						float prio = powerSorting.get(con)/(float)sum;
+						int output = (int)(powerLeft*prio);
+
+						int tempR = toIIC(con.end,worldObj).outputEnergy(Math.min(output,con.cableType.getTransferRate()), true, energyType);
+						int r = tempR;
+						tempR -= (int) Math.max(0, Math.floor(tempR*con.getAverageLossRate()));
+						toIIC(con.end, worldObj).outputEnergy(tempR, simulate, energyType);
+						for(Connection sub : con.subConnections)
+						{
+							IELogger.debug("Sub Con"+sub.start+" to "+sub.end);
+							int transferredPerCon = ImmersiveNetHandler.INSTANCE.transferPerTick.containsKey(sub)?ImmersiveNetHandler.INSTANCE.transferPerTick.get(sub):0;
+							IELogger.debug("old t "+transferredPerCon);
+							transferredPerCon += r;
+							IELogger.debug("new t "+transferredPerCon);
+							if(transferredPerCon>sub.cableType.getTransferRate())
+							{
+								IELogger.debug("Okay, this wire is HAWT.");
+								IELogger.debug("Or at least hotter than "+sub.cableType.getTransferRate());
+							}
+							ImmersiveNetHandler.INSTANCE.transferPerTick.put(sub,transferredPerCon);
+						}
+						received += r;
+						powerLeft -= r;
+						if(powerLeft<=0)
+							break;
+					}
 		}
 		return received;
 	}

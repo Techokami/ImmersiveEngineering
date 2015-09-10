@@ -47,7 +47,7 @@ public class TileEntityBlastFurnace extends TileEntityMultiblockPart implements 
 	{
 		return new ItemStack(IEContent.blockStoneDecoration,1,2);
 	}
-	
+
 	@Override
 	public void updateEntity()
 	{
@@ -390,7 +390,7 @@ public class TileEntityBlastFurnace extends TileEntityMultiblockPart implements 
 								worldObj.spawnEntityInWorld(new EntityItem(worldObj, xCoord+.5,yCoord+.5,zCoord+.5, s));
 							else
 							{
-								if(Block.getBlockFromItem(s.getItem())==IEContent.blockMetalMultiblocks)
+								if(Block.getBlockFromItem(s.getItem())==IEContent.blockStoneDevice)
 									worldObj.setBlockToAir(startX+xx,startY+yy,startZ+zz);
 								worldObj.setBlock(startX+xx,startY+yy,startZ+zz, Block.getBlockFromItem(s.getItem()), s.getItemDamage(), 0x3);
 							}

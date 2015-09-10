@@ -1,36 +1,54 @@
 package blusunrize.immersiveengineering.common;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.AnvilUpdateEvent;
+import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.oredict.OreDictionary;
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
+import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
 import blusunrize.immersiveengineering.api.tool.IDrillHead;
 import blusunrize.immersiveengineering.common.blocks.BlockIEBase;
+import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.ISpawnInterdiction;
 import blusunrize.immersiveengineering.common.blocks.TileEntityImmersiveConnectable;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCrusher;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityMultiblockPart;
 import blusunrize.immersiveengineering.common.items.ItemDrill;
+import blusunrize.immersiveengineering.common.util.IEAchievements;
 import blusunrize.immersiveengineering.common.util.Lib;
 import blusunrize.immersiveengineering.common.util.Utils;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.ItemCraftedEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.WorldTickEvent;
+import cpw.mods.fml.relauncher.Side;
 
 public class EventHandler
 {
+	public static ArrayList<ISpawnInterdiction> interdictionTiles = new ArrayList<ISpawnInterdiction>();
+
 	@SubscribeEvent
 	public void onLoad(WorldEvent.Load event)
 	{
@@ -60,7 +78,7 @@ public class EventHandler
 		 */
 		//		}
 	}
-
+	//transferPerTick
 	@SubscribeEvent
 	public void onSave(WorldEvent.Save event)
 	{
@@ -70,6 +88,23 @@ public class EventHandler
 	public void onUnload(WorldEvent.Unload event)
 	{
 		IESaveData.setDirty(0);
+	}
+
+	@SubscribeEvent
+	public void onWorldTick(WorldTickEvent event)
+	{
+		if(event.phase==TickEvent.Phase.END && FMLCommonHandler.instance().getEffectiveSide()==Side.SERVER)
+		{
+			for(Map.Entry<Connection, Integer> e : ImmersiveNetHandler.INSTANCE.transferPerTick.entrySet())
+				if(e.getValue()>e.getKey().cableType.getTransferRate())
+				{
+					if(event.world instanceof WorldServer)
+						for(Vec3 vec : e.getKey().getSubVertices(event.world))
+							((WorldServer)event.world).func_147487_a("flame", vec.xCoord,vec.yCoord,vec.zCoord, 0, 0,.02,0, 1);
+					ImmersiveNetHandler.INSTANCE.removeConnection(event.world, e.getKey());
+				}
+			ImmersiveNetHandler.INSTANCE.transferPerTick.clear();
+		}
 	}
 
 	@SubscribeEvent
@@ -114,6 +149,31 @@ public class EventHandler
 	}
 
 	@SubscribeEvent
+	public void onEnderTeleport(EnderTeleportEvent event)
+	{
+		if(event.entityLiving.isCreatureType(EnumCreatureType.monster, false))
+		{
+			for(ISpawnInterdiction interdictor : interdictionTiles)
+				if((interdictor instanceof TileEntity && ((TileEntity)interdictor).getWorldObj().provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((TileEntity)interdictor).getDistanceFrom(event.entity.posX, event.entity.posY, event.entity.posZ)<=interdictor.getInterdictionRange())
+						||(interdictor instanceof Entity && ((Entity)interdictor).worldObj.provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((Entity)interdictor).getDistanceToEntity(event.entity)<=interdictor.getInterdictionRange()))
+					event.setCanceled(true);
+		}
+	}
+	@SubscribeEvent
+	public void onEntitySpawnCheck(LivingSpawnEvent.CheckSpawn event)
+	{
+		if(event.getResult() == Event.Result.ALLOW)
+			return;
+		if(event.entityLiving.isCreatureType(EnumCreatureType.monster, false))
+		{
+			for(ISpawnInterdiction interdictor : interdictionTiles)
+				if((interdictor instanceof TileEntity && ((TileEntity)interdictor).getWorldObj().provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((TileEntity)interdictor).getDistanceFrom(event.entity.posX, event.entity.posY, event.entity.posZ)<=interdictor.getInterdictionRange())
+						||(interdictor instanceof Entity && ((Entity)interdictor).worldObj.provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((Entity)interdictor).getDistanceToEntity(event.entity)<=interdictor.getInterdictionRange()))
+					event.setResult(Event.Result.DENY);
+		}
+	}
+
+	@SubscribeEvent
 	public void onEntityInteract(EntityInteractEvent event)
 	{
 		if(event.target instanceof EntityLivingBase && OreDictionary.itemMatches(new ItemStack(IEContent.itemRevolver,1,OreDictionary.WILDCARD_VALUE), event.entityPlayer.getCurrentEquippedItem(), false))
@@ -123,6 +183,8 @@ public class EventHandler
 	@SubscribeEvent
 	public void onItemCrafted(ItemCraftedEvent event)
 	{
+		if(event.player!=null && OreDictionary.itemMatches(new ItemStack(IEContent.itemTool,1,0), event.crafting, true))
+			event.player.triggerAchievement(IEAchievements.craftHammer);
 	}
 
 	@SubscribeEvent()

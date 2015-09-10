@@ -53,6 +53,8 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 	@Override
 	public ItemStack getOriginalBlock()
 	{
+		if(pos<0)
+			return null;
 		ItemStack s = MultiblockRefinery.instance.getStructureManual()[pos%15/5][pos%5][pos/15];
 		return s!=null?s.copy():null;
 	}
@@ -429,6 +431,8 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 			TileEntityRefinery master = master();
 			int rec = master.energyStorage.receiveEnergy(maxReceive, simulate);
 			master.markDirty();
+			if(rec>0)
+				worldObj.markBlockForUpdate(master().xCoord, master().yCoord, master().zCoord);
 			return rec;
 		}
 		return 0;

@@ -1,21 +1,14 @@
 package blusunrize.immersiveengineering.common.blocks.metal;
 
-import static blusunrize.immersiveengineering.common.util.Utils.toIIC;
-
-import java.util.List;
-
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
-import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
-import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
-import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.AbstractConnection;
 import blusunrize.immersiveengineering.common.Config;
 import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces.IBlockOverlayText;
 import blusunrize.immersiveengineering.common.blocks.TileEntityIEBase;
 import blusunrize.immersiveengineering.common.util.Lib;
-import blusunrize.immersiveengineering.common.util.Utils;
 import cofh.api.energy.EnergyStorage;
 import cofh.api.energy.IEnergyHandler;
 import cofh.api.energy.IEnergyReceiver;
@@ -94,27 +87,27 @@ public class TileEntityCapacitorLV extends TileEntityIEBase implements IEnergyHa
 		ForgeDirection fd = ForgeDirection.VALID_DIRECTIONS[side];
 		if(worldObj.getTileEntity(xCoord+fd.offsetX, yCoord+fd.offsetY, zCoord+fd.offsetZ) instanceof IEnergyReceiver)
 			this.energyStorage.modifyEnergyStored(-((IEnergyReceiver)worldObj.getTileEntity(xCoord+fd.offsetX, yCoord+fd.offsetY, zCoord+fd.offsetZ)).receiveEnergy(fd.getOpposite(), Math.min(getMaxOutput(), this.energyStorage.getEnergyStored()), false));
-		else if(worldObj.getTileEntity(xCoord+fd.offsetX,yCoord+fd.offsetY,zCoord+fd.offsetZ) instanceof TileEntityConnectorLV)
-		{
-			IImmersiveConnectable node = (IImmersiveConnectable) worldObj.getTileEntity(xCoord+fd.offsetX,yCoord+fd.offsetY,zCoord+fd.offsetZ);
-			if(!node.isEnergyOutput())
-				return;
-			List<AbstractConnection> outputs = ImmersiveNetHandler.INSTANCE.getIndirectEnergyConnections(Utils.toCC(node), worldObj);
-			int received = 0;
-			int powerLeft = Math.min(getMaxOutput(), this.energyStorage.getEnergyStored());
-			for(AbstractConnection con : outputs)
-				if(con!=null && toIIC(con.end, worldObj)!=null)
-				{
-					int tempR = toIIC(con.end,worldObj).outputEnergy(Math.min(powerLeft,con.cableType.getTransferRate()), true, 0);
-					tempR -= (int) Math.floor(tempR*con.getAverageLossRate());
-					int r = toIIC(con.end, worldObj).outputEnergy(tempR, false, 0);
-					received += r;
-					powerLeft -= r;
-					if(powerLeft<=0)
-						break;
-				}
-			this.energyStorage.modifyEnergyStored(-received);
-		}
+//		else if(worldObj.getTileEntity(xCoord+fd.offsetX,yCoord+fd.offsetY,zCoord+fd.offsetZ) instanceof TileEntityConnectorLV)
+//		{
+//			IImmersiveConnectable node = (IImmersiveConnectable) worldObj.getTileEntity(xCoord+fd.offsetX,yCoord+fd.offsetY,zCoord+fd.offsetZ);
+//			if(!node.isEnergyOutput())
+//				return;
+//			List<AbstractConnection> outputs = ImmersiveNetHandler.INSTANCE.getIndirectEnergyConnections(Utils.toCC(node), worldObj);
+//			int received = 0;
+//			int powerLeft = Math.min(getMaxOutput(), this.energyStorage.getEnergyStored());
+//			for(AbstractConnection con : outputs)
+//				if(con!=null && toIIC(con.end, worldObj)!=null)
+//				{
+//					int tempR = toIIC(con.end,worldObj).outputEnergy(Math.min(powerLeft,con.cableType.getTransferRate()), true, 0);
+//					tempR -= (int) Math.floor(tempR*con.getAverageLossRate());
+//					int r = toIIC(con.end, worldObj).outputEnergy(tempR, false, 0);
+//					received += r;
+//					powerLeft -= r;
+//					if(powerLeft<=0)
+//						break;
+//				}
+//			this.energyStorage.modifyEnergyStored(-received);
+//		}
 	}
 	public void toggleSide(int side)
 	{
@@ -197,17 +190,17 @@ public class TileEntityCapacitorLV extends TileEntityIEBase implements IEnergyHa
 		return r;
 	}
 	@Override
-	public String[] getOverlayText(MovingObjectPosition mop)
+	public String[] getOverlayText(EntityPlayer player, MovingObjectPosition mop, boolean hammer)
 	{
-		if(Config.getBoolean("colourblindSupport"))
+		if(hammer && Config.getBoolean("colourblindSupport"))
 		{
 			int i = sideConfig[Math.min(sideConfig.length-1, mop.sideHit)];
 			int j = sideConfig[Math.min(sideConfig.length-1, ForgeDirection.OPPOSITES[mop.sideHit])];
 			return new String[]{
-					StatCollector.translateToLocal(Lib.DESC_INFO+"capacitorSide.facing")
-					+StatCollector.translateToLocal(Lib.DESC_INFO+"capacitorSide."+i),
-					StatCollector.translateToLocal(Lib.DESC_INFO+"capacitorSide.opposite")
-					+StatCollector.translateToLocal(Lib.DESC_INFO+"capacitorSide."+j)
+					StatCollector.translateToLocal(Lib.DESC_INFO+"blockSide.facing")
+					+": "+StatCollector.translateToLocal(Lib.DESC_INFO+"blockSide.connectEnergy."+i),
+					StatCollector.translateToLocal(Lib.DESC_INFO+"blockSide.opposite")
+					+": "+StatCollector.translateToLocal(Lib.DESC_INFO+"blockSide.connectEnergy."+j)
 			};
 		}
 		return null;

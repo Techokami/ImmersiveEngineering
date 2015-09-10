@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
@@ -14,6 +15,7 @@ import org.lwjgl.opengl.GL11;
 
 import blusunrize.immersiveengineering.api.crafting.ArcFurnaceRecipe;
 import blusunrize.immersiveengineering.client.ClientUtils;
+import blusunrize.immersiveengineering.client.gui.GuiArcFurnace;
 import blusunrize.immersiveengineering.common.util.Utils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.TemplateRecipeHandler;
@@ -30,11 +32,13 @@ public class NEIArcFurnaceHandler extends TemplateRecipeHandler
 		public CachedArcFurnaceRecipe(ArcFurnaceRecipe recipe)
 		{
 			inputs = new PositionedStack[recipe.additives.length+1];
-			inputs[0] = new PositionedStack(recipe.input, 28, 0);
+			if(recipe.input!=null)
+				inputs[0] = new PositionedStack(recipe.input, 28, 0);
 			for(int i=0; i<recipe.additives.length; i++)
 				if(recipe.additives[i]!=null)
 					inputs[i+1] = new PositionedStack(recipe.additives[i], 20+i%2*18, 24+i/2*18);
-			output = new PositionedStack(recipe.output, 122,16);
+			if(recipe.output!=null)
+				output = new PositionedStack(recipe.output, 122,16);
 			if(recipe.slag!=null)
 				slag = new PositionedStack(recipe.slag, 122,36);
 			time = recipe.time;
@@ -58,9 +62,15 @@ public class NEIArcFurnaceHandler extends TemplateRecipeHandler
 	}
 
 	@Override
+	public Class<? extends GuiContainer> getGuiClass()
+	{
+		return GuiArcFurnace.class;
+	}
+
+	@Override
 	public void loadTransferRects()
 	{
-		transferRects.add(new RecipeTransferRect(new Rectangle(71,16, 25,15), "ieArcFurnace"));
+		transferRects.add(new RecipeTransferRect(new Rectangle(76,26, 32,40), "ieArcFurnace"));
 	}
 	@Override
 	public void loadCraftingRecipes(String outputId, Object... results)
@@ -68,7 +78,7 @@ public class NEIArcFurnaceHandler extends TemplateRecipeHandler
 		if(outputId == getOverlayIdentifier())
 		{
 			for(ArcFurnaceRecipe r : ArcFurnaceRecipe.recipeList)
-				if(r!=null)
+				if(r!=null && r.input!=null)
 					this.arecipes.add(new CachedArcFurnaceRecipe(r));
 		}
 		else
@@ -99,7 +109,7 @@ public class NEIArcFurnaceHandler extends TemplateRecipeHandler
 	{
 		if(result!=null)
 			for(ArcFurnaceRecipe r : ArcFurnaceRecipe.recipeList)
-				if(r!=null && (Utils.stackMatchesObject(result, r.output)||(r.slag!=null&&Utils.stackMatchesObject(result, r.slag))))
+				if(r!=null && r.input!=null && (Utils.stackMatchesObject(result, r.output)||(r.slag!=null&&Utils.stackMatchesObject(result, r.slag))))
 					this.arecipes.add(new CachedArcFurnaceRecipe(r));
 	}
 	@Override
@@ -107,7 +117,7 @@ public class NEIArcFurnaceHandler extends TemplateRecipeHandler
 	{
 		if(ingredient!=null)
 			for(ArcFurnaceRecipe r : ArcFurnaceRecipe.recipeList)
-				if(r!=null)
+				if(r!=null && r.input!=null)
 				{
 					if(Utils.stackMatchesObject(ingredient, r.input))
 						this.arecipes.add(new CachedArcFurnaceRecipe(r));

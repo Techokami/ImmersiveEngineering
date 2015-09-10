@@ -6,7 +6,6 @@ import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -31,14 +30,12 @@ import blusunrize.immersiveengineering.api.tool.IUpgrade;
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.gui.IESlot;
 import blusunrize.immersiveengineering.common.gui.InventoryStorageItem;
+import blusunrize.immersiveengineering.common.util.IEAchievements;
 import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import blusunrize.immersiveengineering.common.util.Lib;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemDrill extends ItemUpgradeableTool implements IFluidContainerItem
 {
@@ -123,11 +120,6 @@ public class ItemDrill extends ItemUpgradeableTool implements IFluidContainerIte
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void registerIcons(IIconRegister ir)
-	{
-	}
-	@Override
 	public double getDurabilityForDisplay(ItemStack stack)
 	{
 		return (double)getHeadDamage(stack) / (double)getMaxHeadDamage(stack);
@@ -143,6 +135,21 @@ public class ItemDrill extends ItemUpgradeableTool implements IFluidContainerIte
 		return EnumAction.bow;
 	}
 
+	@Override
+	public void onCreated(ItemStack stack, World world, EntityPlayer player)
+	{
+		if(stack==null || player==null)
+			return;
+		player.triggerAchievement(IEAchievements.makeDrill);
+	}
+	@Override
+	public void removeFromWorkbench(EntityPlayer player, ItemStack stack)
+	{
+		ItemStack[] contents = this.getContainedItems(stack);
+		if(contents[0]!=null&&contents[1]!=null&&contents[2]!=null&&contents[3]!=null)
+			player.triggerAchievement(IEAchievements.upgradeDrill);
+	}
+	
 	/*INVENTORY STUFF*/
 	public ItemStack getHead(ItemStack drill)
 	{

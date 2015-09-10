@@ -21,7 +21,7 @@ public class TileEntitySilo extends TileEntityMultiblockPart implements ISidedIn
 {
 	public ItemStack identStack;
 	public int storageAmount = 0;
-	static int maxStorage = 64;//41472;
+	static int maxStorage = 41472;
 	ItemStack inputStack;
 	ItemStack outputStack;
 	ItemStack prevInputStack;
@@ -66,6 +66,8 @@ public class TileEntitySilo extends TileEntityMultiblockPart implements ISidedIn
 			NBTTagCompound t = nbt.getCompoundTag("identStack");
 			this.identStack = ItemStack.loadItemStackFromNBT(t);
 		}
+		else
+			this.identStack = null;
 		storageAmount = nbt.getInteger("storageAmount");
 		lockItem = nbt.getBoolean("lockItem");
 	}
@@ -296,6 +298,7 @@ public class TileEntitySilo extends TileEntityMultiblockPart implements ISidedIn
 		}
 
 		// Handle emptying of the barrel
+		boolean forceUpdate = false;
 		if(storageAmount==0 && !lockItem)
 		{
 			identStack = null;
@@ -303,6 +306,7 @@ public class TileEntitySilo extends TileEntityMultiblockPart implements ISidedIn
 			prevOutputStack = null;
 			inputStack = null;
 			prevInputStack = null;
+			forceUpdate=true;
 		}
 		else if(identStack!=null)
 		{
@@ -311,7 +315,7 @@ public class TileEntitySilo extends TileEntityMultiblockPart implements ISidedIn
 			outputStack.stackSize = Math.min(outputStack.getMaxStackSize(), storageAmount);
 			prevOutputStack = outputStack.copy();
 		}
-		if(storageAmount!=oldStorage)
+		if(storageAmount!=oldStorage||forceUpdate)
 			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 	}
 

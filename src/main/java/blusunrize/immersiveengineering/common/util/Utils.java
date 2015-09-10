@@ -97,7 +97,7 @@ public class Utils
 	{
 		if(object instanceof IImmersiveConnectable)
 			return (IImmersiveConnectable)object;
-		else if(object instanceof ChunkCoordinates && world!=null && world.getTileEntity( ((ChunkCoordinates)object).posX, ((ChunkCoordinates)object).posY, ((ChunkCoordinates)object).posZ) instanceof IImmersiveConnectable)
+		else if(object instanceof ChunkCoordinates && world!=null && world.blockExists( ((ChunkCoordinates)object).posX, ((ChunkCoordinates)object).posY, ((ChunkCoordinates)object).posZ) && world.getTileEntity( ((ChunkCoordinates)object).posX, ((ChunkCoordinates)object).posY, ((ChunkCoordinates)object).posZ) instanceof IImmersiveConnectable)
 		{
 			return (IImmersiveConnectable)world.getTileEntity( ((ChunkCoordinates)object).posX, ((ChunkCoordinates)object).posY, ((ChunkCoordinates)object).posZ);
 		}
@@ -447,6 +447,25 @@ public class Utils
 		return null;
 	}
 
+	public static FluidStack getFluidFromItemStack(ItemStack stack)
+	{
+		if(stack==null)
+			return null;
+		FluidStack fluid = FluidContainerRegistry.getFluidForFilledItem(stack);
+		if(fluid != null)
+			return fluid;
+		else if(stack.getItem() instanceof IFluidContainerItem)
+			return ((IFluidContainerItem)stack.getItem()).getFluid(stack);
+		return null;
+	}
+
+	public static boolean isFluidRelatedItemStack(ItemStack stack)
+	{
+		if(stack==null)
+			return false;
+		return FluidContainerRegistry.isContainer(stack)||stack.getItem() instanceof IFluidContainerItem;
+	}
+	
 	public static boolean fillPlayerItemFromFluidHandler(World world, IFluidHandler handler, EntityPlayer player, FluidStack tankFluid)
 	{
 		ItemStack equipped = player.getCurrentEquippedItem();

@@ -50,6 +50,8 @@ public class TileEntityDieselGenerator extends TileEntityMultiblockPart implemen
 	@Override
 	public ItemStack getOriginalBlock()
 	{
+		if(pos<0)
+			return null;
 		ItemStack s = MultiblockDieselGenerator.instance.getStructureManual()[pos%9/3][4-pos/9][pos%3];
 		return s!=null?s.copy():null;
 	}
@@ -198,7 +200,7 @@ public class TileEntityDieselGenerator extends TileEntityMultiblockPart implemen
 	@Override
 	public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain)
 	{
-		if(!formed)
+		if(!canDrain(from, resource!=null?resource.getFluid():null))
 			return null;
 		if(master()!=null)
 		{
