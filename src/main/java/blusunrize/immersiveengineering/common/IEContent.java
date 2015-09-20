@@ -115,6 +115,7 @@ import blusunrize.immersiveengineering.common.items.ItemIEBase;
 import blusunrize.immersiveengineering.common.items.ItemIESeed;
 import blusunrize.immersiveengineering.common.items.ItemIETool;
 import blusunrize.immersiveengineering.common.items.ItemRevolver;
+import blusunrize.immersiveengineering.common.items.ItemShader;
 import blusunrize.immersiveengineering.common.items.ItemSkyhook;
 import blusunrize.immersiveengineering.common.items.ItemToolUpgrade;
 import blusunrize.immersiveengineering.common.items.ItemWireCoil;
@@ -138,6 +139,7 @@ public class IEContent
 	public static BlockIEBase blockMetalMultiblocks;
 	public static BlockIEBase blockWoodenDevice;
 	public static BlockIEBase blockWoodenDecoration;
+	public static BlockIEBase blockTreatedWood;
 	public static Block blockWoodenStair;
 	public static BlockIEBase blockStoneDevice;
 	public static BlockIEBase blockStoneDecoration;
@@ -157,6 +159,7 @@ public class IEContent
 	public static ItemIEBase itemSkyhook;
 	public static ItemIEBase itemBlueprint;
 	public static ItemIEBase itemGraphiteElectrode;
+	public static ItemIEBase itemShader;
 	public static Fluid fluidCreosote;
 	public static boolean IECreosote=false;
 	public static Fluid fluidPlantoil;
@@ -177,6 +180,7 @@ public class IEContent
 		blockMetalMultiblocks = new BlockMetalMultiblocks();
 		blockWoodenDevice = new BlockWoodenDevices();
 		blockWoodenDecoration = new BlockWoodenDecoration();
+		blockTreatedWood = (BlockIEBase)new BlockIESimple("treatedWood",Material.wood,ItemBlockIEBase.class, "0","1","2").setHasFlavour(true).setHardness(2f).setResistance(5f);
 		blockWoodenStair = new BlockIEWoodenStairs();
 		blockStoneDevice = new BlockStoneDevices();
 		blockStoneDecoration = new BlockStoneDecoration();
@@ -226,6 +230,7 @@ public class IEContent
 		itemSkyhook = new ItemSkyhook();
 		itemBlueprint = new ItemEngineersBlueprint();
 		itemGraphiteElectrode = new ItemGraphiteElectrode();
+		itemShader = new ItemShader();
 
 		fluidCreosote = FluidRegistry.getFluid("creosote");
 		if(fluidCreosote==null)
@@ -259,14 +264,18 @@ public class IEContent
 		//Ore Dict
 		registerToOreDict("ore", blockOres);
 		registerToOreDict("block", blockStorage, 0,1,2,3,4,5,6,7);
+		registerToOreDict("slab", blockStorageSlabs);
 		registerToOreDict("", itemMetal);
 		registerOre("Cupronickel",	null,new ItemStack(itemMetal,1,5),new ItemStack(itemMetal,1,15),new ItemStack(blockStorage,1,5),new ItemStack(itemMetal,1,27));
 
 		OreDictionary.registerOre("seedIndustrialHemp", new ItemStack(itemSeeds));
 		OreDictionary.registerOre("treatedStick", new ItemStack(itemMaterial,1,0));
 		OreDictionary.registerOre("fuelCoke", new ItemStack(itemMaterial,1,6));
+		OreDictionary.registerOre("plankTreatedWood", new ItemStack(blockTreatedWood,1,OreDictionary.WILDCARD_VALUE));
 		OreDictionary.registerOre("blockFuelCoke", new ItemStack(blockStoneDevice,1,3));
 		OreDictionary.registerOre("blockFuelCoke", new ItemStack(blockStoneDecoration,1,3));
+		OreDictionary.registerOre("concrete", new ItemStack(blockStoneDecoration,1,4));
+		OreDictionary.registerOre("concrete", new ItemStack(blockStoneDecoration,1,5));
 		OreDictionary.registerOre("itemSlag", new ItemStack(itemMaterial,1,13));
 		//Vanilla OreDict
 		OreDictionary.registerOre("bricksStone", new ItemStack(Blocks.stonebrick));
@@ -383,7 +392,7 @@ public class IEContent
 
 		/**SMELTING*/
 		IERecipes.initFurnaceRecipes();
-		
+
 		/**CRAFTING*/
 		IERecipes.initCraftingRecipes();
 
@@ -400,7 +409,7 @@ public class IEContent
 		GameRegistry.registerFuelHandler(new IEFuelHandler());
 
 		IERecipes.initCrusherRecipes();
-		
+
 		IERecipes.initArcSmeltingRecipes();
 
 		DieselHandler.registerFuel(fluidBiodiesel, 125);
@@ -435,8 +444,9 @@ public class IEContent
 		ExcavatorHandler.addMineral("Copper", 30, .2f, new String[]{"oreCopper","oreGold","oreNickel","denseoreCopper"}, new float[]{.65f,.25f,.05f,.05f});
 		ExcavatorHandler.addMineral("Gold", 20, .3f, new String[]{"oreGold","oreCopper","oreNickel","denseoreGold"}, new float[]{.65f,.25f,.05f,.05f});
 		ExcavatorHandler.addMineral("Nickel", 20, .3f, new String[]{"oreNickel","orePlatinum","oreIron","denseoreNickel"}, new float[]{.85f,.05f,.05f,.05f});
-		ExcavatorHandler.addMineral("Platinum", 5, .35f, new String[]{"orePlatinum","oreNickel","oreIridium","denseorePlatinum"}, new float[]{.45f,.35f,.1f,.05f});
-		ExcavatorHandler.addMineral("Uranium", 10, .35f, new String[]{"oreUranium","oreLead","orePlutonium","denseoreUranium"}, new float[]{.55f,.3f,.1f,.05f}).addReplacement("oreUranium", "oreYellorium");
+		ExcavatorHandler.addMineral("Platinum", 5, .35f, new String[]{"orePlatinum","oreNickel","","oreIridium","denseorePlatinum"}, new float[]{.40f,.30f,.15f,.1f,.05f});
+		if(OreDictionary.doesOreNameExist("oreUranium")||OreDictionary.doesOreNameExist("oreYellorium"))
+			ExcavatorHandler.addMineral("Uranium", 10, .35f, new String[]{"oreUranium","oreLead","orePlutonium","denseoreUranium"}, new float[]{.55f,.3f,.1f,.05f}).addReplacement("oreUranium", "oreYellorium");
 		ExcavatorHandler.addMineral("Quartzite", 5, .3f, new String[]{"oreQuartz","oreCertusQuartz"}, new float[]{.6f,.4f});
 		ExcavatorHandler.addMineral("Galena", 15, .2f, new String[]{"oreLead","oreSilver","oreSulfur","denseoreLead","denseoreSilver"}, new float[]{.40f,.40f,.1f,.05f,.05f});
 		ExcavatorHandler.addMineral("Lead", 10, .15f, new String[]{"oreLead","oreSilver","denseoreLead"}, new float[]{.55f,.4f,.05f});
@@ -460,7 +470,7 @@ public class IEContent
 		MultiblockHandler.registerMultiblock(MultiblockSilo.instance);
 
 		IEAchievements.init();
-		
+
 		//Railcraft Compat
 		if(Loader.isModLoaded("Railcraft"))
 		{

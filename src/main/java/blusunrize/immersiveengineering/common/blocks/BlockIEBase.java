@@ -29,6 +29,7 @@ public abstract class BlockIEBase extends BlockContainer
 	public String[] subNames;
 	public final IIcon[][] icons;
 	protected final int iconDimensions;
+	public boolean hasFlavour = false;
 
 	protected BlockIEBase(String name, Material mat, int iconDimensions, Class<? extends ItemBlockIEBase> itemBlock, String... subNames)
 	{
@@ -43,6 +44,12 @@ public abstract class BlockIEBase extends BlockContainer
 		this.setCreativeTab(ImmersiveEngineering.creativeTab);
 	}
 
+	public BlockIEBase setHasFlavour(boolean hasFlavour)
+	{
+		this.hasFlavour = hasFlavour;
+		return this;
+	}
+	
 	void adjustSound()
 	{
 		if(this.blockMaterial==Material.anvil)
@@ -250,6 +257,11 @@ public abstract class BlockIEBase extends BlockContainer
 				icons[i][0] = iconRegister.registerIcon("immersiveengineering:"+name+"_"+subNames[i]);
 		}
 
+		@Override
+	    public boolean hasTileEntity(int metadata)
+	    {
+	        return false;
+	    }
 		@Override
 		public TileEntity createNewTileEntity(World p_149915_1_, int p_149915_2_)
 		{

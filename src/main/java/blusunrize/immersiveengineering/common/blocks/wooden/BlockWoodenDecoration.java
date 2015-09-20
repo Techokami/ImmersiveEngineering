@@ -104,7 +104,7 @@ public class BlockWoodenDecoration extends BlockIEBase implements blusunrize.aqu
 	public void getSubBlocks(Item item, CreativeTabs tab, List list)
 	{
 		for(int i=0; i<subNames.length; i++)
-			if(i!=3)
+			if(i!=0&&i!=3)
 				list.add(new ItemStack(item, 1, i));
 	}
 	@Override
@@ -208,6 +208,11 @@ public class BlockWoodenDecoration extends BlockIEBase implements blusunrize.aqu
 		}
 	}
 
+	@Override
+    public boolean hasTileEntity(int meta)
+    {
+        return meta==6;
+    }
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta)
 	{
