@@ -1,9 +1,7 @@
 package blusunrize.immersiveengineering.common.blocks.metal;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -18,6 +16,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -80,9 +79,7 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 		icons[0][1] = iconRegister.registerIcon("immersiveengineering:metal_lightningrod_top");
 		icons[0][2] = iconRegister.registerIcon("immersiveengineering:metal_lightningrod_side");
 		icons[0][3] = iconRegister.registerIcon("immersiveengineering:metal_lightningrod_side");
-		//1 dieselGenerator
-		for(int i=0;i<4;i++)
-			icons[1][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
+		
 		//2 industrialSqueezer
 		icons[2][0] = iconRegister.registerIcon("immersiveengineering:metal_squeezer");
 		icons[2][1] = iconRegister.registerIcon("immersiveengineering:metal_multiblockTop");
@@ -94,13 +91,15 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 		icons[3][2] = iconRegister.registerIcon("immersiveengineering:metal_multiblockFermenter0");
 		icons[3][3] = iconRegister.registerIcon("immersiveengineering:metal_multiblockFermenter1");
 		//all others
+		icons[META_dieselGenerator][0] = iconRegister.registerIcon("immersiveengineering:metal_multiblock_dieselGenerator");
+		icons[META_refinery][0] = iconRegister.registerIcon("immersiveengineering:metal_multiblock_refinery");
+		icons[META_crusher][0] = iconRegister.registerIcon("immersiveengineering:metal_multiblock_crusher");
+		icons[META_excavator][0] = iconRegister.registerIcon("immersiveengineering:metal_multiblock_excavator");
+		icons[META_arcFurnace][0] = iconRegister.registerIcon("immersiveengineering:metal_multiblock_arcFurnace_inactive");
+		icons[META_arcFurnace][1] = iconRegister.registerIcon("immersiveengineering:metal_multiblock_arcFurnace_active");
 		for(int i=0;i<4;i++)
 		{
-			icons[4][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
-			icons[5][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 			icons[6][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
-			icons[7][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
-			icons[8][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 			icons[9][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 			icons[10][i] = iconRegister.registerIcon("immersiveengineering:storage_Steel");
 		}
@@ -109,25 +108,36 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side)
 	{
+		TileEntity te = world.getTileEntity(x, y, z);
 		if(world.getBlockMetadata(x, y, z)==META_squeezer)
 		{
-			if(world.getTileEntity(x, y, z) instanceof TileEntitySqueezer && ((TileEntitySqueezer)world.getTileEntity(x,y,z)).formed)
-				return icons[META_squeezer][ side==0||side==1?1 : ((TileEntitySqueezer)world.getTileEntity(x,y,z)).facing==side?2: 3];
+			if(te instanceof TileEntitySqueezer && ((TileEntitySqueezer)te).formed)
+				return icons[META_squeezer][ side==0||side==1?1 : ((TileEntitySqueezer)te).facing==side?2: 3];
 			return icons[META_squeezer][0];
 		}
 		if(world.getBlockMetadata(x, y, z)==META_fermenter)
 		{
-			if(world.getTileEntity(x, y, z) instanceof TileEntityFermenter && ((TileEntityFermenter)world.getTileEntity(x,y,z)).formed)
-				return icons[META_fermenter][ side==0||side==1?1 : ((TileEntityFermenter)world.getTileEntity(x,y,z)).facing==side?2: 3];
+			if(te instanceof TileEntityFermenter && ((TileEntityFermenter)te).formed)
+				return icons[META_fermenter][ side==0||side==1?1 : ((TileEntityFermenter)te).facing==side?2: 3];
 			return icons[META_fermenter][0];
 		}
 		if(world.getBlockMetadata(x, y, z)==META_refinery)
 		{
-			if(world.getTileEntity(x, y, z) instanceof TileEntityRefinery && ((TileEntityRefinery)world.getTileEntity(x,y,z)).formed)
-				return icons[META_refinery][ side==0||side==1?1 : ((TileEntityRefinery)world.getTileEntity(x,y,z)).facing==side?2: 3];
+			if(te instanceof TileEntityRefinery && ((TileEntityRefinery)te).formed)
+				return icons[META_refinery][ side==0||side==1?1 : ((TileEntityRefinery)te).facing==side?2: 3];
 			return icons[META_refinery][0];
 		}
 		return super.getIcon(world, x, y, z, side);
+	}
+	@Override
+	public boolean isOpaqueCube()
+	{
+		return false;
+	}
+	@Override
+	public boolean renderAsNormalBlock()
+	{
+		return false;
 	}
 	@Override
 	public int getRenderType()
@@ -138,9 +148,10 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	@Override
 	public void breakBlock(World world, int x, int y, int z, Block par5, int par6)
 	{
-		if(world.getTileEntity(x, y, z) instanceof TileEntityMultiblockPart)
+		TileEntity tileEntity = world.getTileEntity(x, y, z);
+		if(tileEntity instanceof TileEntityMultiblockPart)
 		{
-			TileEntityMultiblockPart tile = (TileEntityMultiblockPart)world.getTileEntity(x, y, z);
+			TileEntityMultiblockPart tile = (TileEntityMultiblockPart)tileEntity;
 			if(!tile.formed && tile.pos==-1 && tile.getOriginalBlock()!=null)
 				world.spawnEntityInWorld(new EntityItem(world, x+.5,y+.5,z+.5, tile.getOriginalBlock().copy()));
 		}
@@ -159,64 +170,66 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 
 	public ItemStack getOriginalBlock(World world, int x, int y, int z)
 	{
-		if(world.getTileEntity(x, y, z) instanceof TileEntityMultiblockPart)
-			return ((TileEntityMultiblockPart)world.getTileEntity(x, y, z)).getOriginalBlock();
+		TileEntity te = world.getTileEntity(x, y, z);
+		if(te instanceof TileEntityMultiblockPart)
+			return ((TileEntityMultiblockPart)te).getOriginalBlock();
 		return new ItemStack(this, 1, world.getBlockMetadata(x, y, z));
 	}
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ)
 	{
-		if(world.getTileEntity(x, y, z) instanceof TileEntitySqueezer)
+		TileEntity curr = world.getTileEntity(x, y, z);
+		if(curr instanceof TileEntitySqueezer)
 		{
-			if(!player.isSneaking() && ((TileEntitySqueezer)world.getTileEntity(x, y, z)).formed )
+			if(!player.isSneaking() && ((TileEntitySqueezer)curr).formed )
 			{
-				TileEntitySqueezer te = ((TileEntitySqueezer)world.getTileEntity(x, y, z)).master();
+				TileEntitySqueezer te = ((TileEntitySqueezer)curr).master();
 				if(te==null)
-					te = ((TileEntitySqueezer)world.getTileEntity(x, y, z));
+					te = ((TileEntitySqueezer)curr);
 				if(!world.isRemote)
 					player.openGui(ImmersiveEngineering.instance, Lib.GUIID_Squeezer, world, te.xCoord, te.yCoord, te.zCoord);
 				return true;
 			}
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityFermenter)
+		if(curr instanceof TileEntityFermenter)
 		{
-			if(!player.isSneaking() && ((TileEntityFermenter)world.getTileEntity(x, y, z)).formed )
+			if(!player.isSneaking() && ((TileEntityFermenter)curr).formed )
 			{
-				TileEntityFermenter te = ((TileEntityFermenter)world.getTileEntity(x, y, z)).master();
+				TileEntityFermenter te = ((TileEntityFermenter)curr).master();
 				if(te==null)
-					te = ((TileEntityFermenter)world.getTileEntity(x, y, z));
+					te = ((TileEntityFermenter)curr);
 				if(!world.isRemote)
 					player.openGui(ImmersiveEngineering.instance, Lib.GUIID_Fermenter, world, te.xCoord, te.yCoord, te.zCoord);
 				return true;
 			}
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityRefinery)
+		if(curr instanceof TileEntityRefinery)
 		{
-			if(!player.isSneaking() && ((TileEntityRefinery)world.getTileEntity(x, y, z)).formed )
+			if(!player.isSneaking() && ((TileEntityRefinery)curr).formed )
 			{
-				TileEntityRefinery te = ((TileEntityRefinery)world.getTileEntity(x, y, z)).master();
+				TileEntityRefinery te = ((TileEntityRefinery)curr).master();
 				if(te==null)
-					te = ((TileEntityRefinery)world.getTileEntity(x, y, z));
+					te = ((TileEntityRefinery)curr);
 				if(!world.isRemote)
 					player.openGui(ImmersiveEngineering.instance, Lib.GUIID_Refinery, world, te.xCoord, te.yCoord, te.zCoord);
 				return true;
 			}
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityDieselGenerator && Utils.isHammer(player.getCurrentEquippedItem()) &&((TileEntityDieselGenerator)world.getTileEntity(x, y, z)).pos==40)
+		if(curr instanceof TileEntityDieselGenerator && Utils.isHammer(player.getCurrentEquippedItem()) &&((TileEntityDieselGenerator)curr).pos==40)
 		{
-			TileEntityDieselGenerator te = ((TileEntityDieselGenerator)world.getTileEntity(x, y, z)).master();
+			TileEntityDieselGenerator te = ((TileEntityDieselGenerator)curr).master();
 			if(te==null)
-				te = ((TileEntityDieselGenerator)world.getTileEntity(x, y, z));
+				te = ((TileEntityDieselGenerator)curr);
 			te.mirrored = !te.mirrored;
 			te.markDirty();
 			world.markBlockForUpdate(te.xCoord, te.yCoord, te.zCoord);
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityArcFurnace)
+		if(curr instanceof TileEntityArcFurnace)
 		{
-			if(!player.isSneaking() && ((TileEntityArcFurnace)world.getTileEntity(x, y, z)).formed )
+			if(!player.isSneaking() && ((TileEntityArcFurnace)curr).formed )
 			{
-				TileEntityArcFurnace te = ((TileEntityArcFurnace)world.getTileEntity(x, y, z));
+				TileEntityArcFurnace te = ((TileEntityArcFurnace)curr);
 				if(te.pos==2||te.pos==25|| (te.pos>25 && te.pos%5>0 && te.pos%5<4 && te.pos%25/5<4))
 				{
 					TileEntityArcFurnace master = te.master();
@@ -228,11 +241,11 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 				}
 			}
 		}
-		if(!player.isSneaking() && world.getTileEntity(x, y, z) instanceof TileEntitySheetmetalTank)
+		if(!player.isSneaking() && curr instanceof TileEntitySheetmetalTank)
 		{
 			if(!world.isRemote)
 			{
-				TileEntitySheetmetalTank tank = (TileEntitySheetmetalTank)world.getTileEntity(x, y, z);
+				TileEntitySheetmetalTank tank = (TileEntitySheetmetalTank)curr;
 				TileEntitySheetmetalTank master = tank.master();
 				if(master==null)
 					master = tank;
@@ -257,9 +270,9 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 			}
 			return true;
 		}
-		if(!world.isRemote && !player.isSneaking() && world.getTileEntity(x, y, z) instanceof TileEntitySilo)
+		if(!world.isRemote && !player.isSneaking() && curr instanceof TileEntitySilo)
 		{
-			TileEntitySilo te = ( TileEntitySilo)world.getTileEntity(x, y, z);
+			TileEntitySilo te = ( TileEntitySilo)curr;
 			TileEntitySilo master = te.master();
 			if(master==null)
 				master = te;
@@ -271,39 +284,40 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	@Override
 	public boolean isSideSolid(IBlockAccess world, int x, int y, int z, ForgeDirection side)
 	{
-		if(world.getTileEntity(x, y, z) instanceof TileEntityDieselGenerator)
+		TileEntity te = world.getTileEntity(x, y, z);
+		if(te instanceof TileEntityDieselGenerator)
 		{
-			TileEntityDieselGenerator tile = (TileEntityDieselGenerator)world.getTileEntity(x, y, z);
+			TileEntityDieselGenerator tile = (TileEntityDieselGenerator)te;
 			if(tile.pos==39||tile.pos==40||tile.pos==41)
 				return side == ForgeDirection.UP;
 			else if(tile.pos==36||tile.pos==38)
 				return true;
-			else if(tile.pos==21)
+			else if((tile.pos==21&&!tile.master().mirrored) || (tile.pos==23&&tile.master().mirrored))
 				return true;
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityRefinery)
+		if(te instanceof TileEntityRefinery)
 		{
-			TileEntityRefinery tile = (TileEntityRefinery)world.getTileEntity(x, y, z);
+			TileEntityRefinery tile = (TileEntityRefinery)te;
 			if(tile.pos==9 && side.ordinal()==tile.facing)
 				return true;
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityCrusher)
+		if(te instanceof TileEntityCrusher)
 		{
-			TileEntityCrusher tile = (TileEntityCrusher)world.getTileEntity(x, y, z);
+			TileEntityCrusher tile = (TileEntityCrusher)te;
 			if(tile.pos%5==0)
 				return true;
 			else if(tile.pos==9 && side.ordinal()==tile.facing)
 				return true;
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityExcavator)
+		if(te instanceof TileEntityExcavator)
 		{
-			TileEntityExcavator tile = (TileEntityExcavator)world.getTileEntity(x, y, z);
+			TileEntityExcavator tile = (TileEntityExcavator)te;
 			if(tile.pos<27)
 				return true;
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntityArcFurnace)
+		if(te instanceof TileEntityArcFurnace)
 		{
-			TileEntityArcFurnace tile = (TileEntityArcFurnace)world.getTileEntity(x, y, z);
+			TileEntityArcFurnace tile = (TileEntityArcFurnace)te;
 			if(tile.pos==2 || tile.pos==25 || tile.pos==52)
 				return side.ordinal()==tile.facing || (tile.pos==52?side==ForgeDirection.UP:false);
 			if(tile.pos==82 || tile.pos==86 || tile.pos==88 || tile.pos==112)
@@ -311,9 +325,9 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 			if( (tile.pos>=21&&tile.pos<=23) || (tile.pos>=46&&tile.pos<=48) || (tile.pos>=71&&tile.pos<=73))
 				return side.getOpposite().ordinal()==tile.facing;
 		}
-		if(world.getTileEntity(x, y, z) instanceof TileEntitySheetmetalTank || world.getTileEntity(x, y, z) instanceof TileEntitySilo)
+		if(te instanceof TileEntitySheetmetalTank || te instanceof TileEntitySilo)
 		{
-			TileEntityMultiblockPart tile = (TileEntityMultiblockPart)world.getTileEntity(x, y, z);
+			TileEntityMultiblockPart tile = (TileEntityMultiblockPart)te;
 			return tile.pos==4||tile.pos==(tile instanceof TileEntitySilo?58:40)||(tile.pos>=18&&tile.pos<(tile instanceof TileEntitySilo?54:36));
 		}
 		return super.isSideSolid(world, x, y, z, side);
@@ -322,25 +336,27 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	@Override
 	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side)
 	{
-		if(world.getTileEntity(x, y, z) instanceof TileEntityDieselGenerator)
-			return ((TileEntityDieselGenerator)world.getTileEntity(x, y, z)).pos==21 || ((TileEntityDieselGenerator)world.getTileEntity(x, y, z)).pos==23;
-		if(world.getTileEntity(x, y, z) instanceof TileEntityRefinery)
-			return ((TileEntityRefinery)world.getTileEntity(x, y, z)).pos==9 && side==((TileEntityRefinery)world.getTileEntity(x, y, z)).facing;
-		if(world.getTileEntity(x, y, z) instanceof TileEntityCrusher)
-			return ((TileEntityCrusher)world.getTileEntity(x, y, z)).pos==9 && side==((TileEntityCrusher)world.getTileEntity(x, y, z)).facing;
-		if(world.getTileEntity(x, y, z) instanceof TileEntityExcavator)
-			return ((TileEntityExcavator)world.getTileEntity(x, y, z)).pos==3 || ((TileEntityExcavator)world.getTileEntity(x, y, z)).pos==5;
-		if(world.getTileEntity(x, y, z) instanceof TileEntityArcFurnace)
-			return ((TileEntityArcFurnace)world.getTileEntity(x, y, z)).pos==25;
+		TileEntity te = world.getTileEntity(x, y, z);
+		if(te instanceof TileEntityDieselGenerator)
+			return ((TileEntityDieselGenerator)te).pos==21 || ((TileEntityDieselGenerator)te).pos==23;
+		if(te instanceof TileEntityRefinery)
+			return ((TileEntityRefinery)te).pos==9 && side==((TileEntityRefinery)te).facing;
+		if(te instanceof TileEntityCrusher)
+			return ((TileEntityCrusher)te).pos==9 && side==((TileEntityCrusher)te).facing;
+		if(te instanceof TileEntityExcavator)
+			return ((TileEntityExcavator)te).pos==3 || ((TileEntityExcavator)te).pos==5;
+		if(te instanceof TileEntityArcFurnace)
+			return ((TileEntityArcFurnace)te).pos==25;
 		return false;
 	}
 
 	@Override
 	public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z)
 	{
-		if(world.getTileEntity(x, y, z) instanceof TileEntityMultiblockPart)
+		TileEntity te = world.getTileEntity(x, y, z);
+		if(te instanceof TileEntityMultiblockPart)
 		{
-			float[] bounds = ((TileEntityMultiblockPart)world.getTileEntity(x, y, z)).getBlockBounds();
+			float[] bounds = ((TileEntityMultiblockPart)te).getBlockBounds();
 			if(bounds!=null && bounds.length>5)
 				this.setBlockBounds(bounds[0],bounds[1],bounds[2], bounds[3],bounds[4],bounds[5]);
 			else
@@ -352,9 +368,11 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	@Override
 	public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB aabb, List list, Entity ent)
 	{
-		if(world.getTileEntity(x, y, z) instanceof TileEntityCrusher)
+		this.setBlockBoundsBasedOnState(world, x, y, z);
+		TileEntity tileEntity = world.getTileEntity(x, y, z);
+		if(tileEntity instanceof TileEntityCrusher)
 		{
-			TileEntityCrusher tile = (TileEntityCrusher)world.getTileEntity(x, y, z);
+			TileEntityCrusher tile = (TileEntityCrusher)tileEntity;
 			if(tile.pos%15>=11&&tile.pos%15<=13)
 			{	
 				int pos = tile.pos;
@@ -367,7 +385,7 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 					if(pos%5==1)
 					{
 						this.setBlockBounds(fl==4||fw==3?.1875f:fw==2?.5625f:0, 0, fl==2||fw==4?.1875f:fw==5?.5625f:0, fl==5||fw==2?.8125f:fw==3?.4375f:1, 1, fl==3||fw==5?.8125f:fw==4?.4375f:1);
-						super.addCollisionBoxesToList(world, x, y, z, aabb, list, ent);
+						addCollisionBox(world, x, y, z, aabb, list, ent);
 						this.setBlockBounds(fl==4||fw==3?.1875f:fl==5?.5625f:0, 0, fl==2||fw==4?.1875f:fl==3?.5625f:0, fl==5||fw==2?.8125f:fl==4?.4375f:1, 1, fl==3||fw==5?.8125f:fl==2?.4375f:1);
 					}
 					else
@@ -382,33 +400,32 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 					if(pos%5==1)
 					{
 						this.setBlockBounds(fl==5||fw==3?.1875f:fw==2?.5625f:0, 0, fl==3||fw==4?.1875f:fw==5?.5625f:0, fl==4||fw==2?.8125f:fw==3?.4375f:1, 1, fl==2||fw==5?.8125f:fw==4?.4375f:1);
-						super.addCollisionBoxesToList(world, x, y, z, aabb, list, ent);
+						addCollisionBox(world, x, y, z, aabb, list, ent);
 						this.setBlockBounds(fl==5||fw==3?.1875f:fl==4?.5625f:0, 0, fl==3||fw==4?.1875f:fl==2?.5625f:0, fl==4||fw==2?.8125f:fl==5?.4375f:1, 1, fl==2||fw==5?.8125f:fl==3?.4375f:1);
 					}
 					else
 					{
 						this.setBlockBounds(fl==5||fw==2?.1875f:fw==3?.5625f:0, 0, fl==3||fw==5?.1875f:fw==4?.5625f:0, fl==4||fw==3?.8125f:fw==2?.4375f:1, 1, fl==2||fw==4?.8125f:fw==5?.4375f:1);
-						super.addCollisionBoxesToList(world, x, y, z, aabb, list, ent);
+						addCollisionBox(world, x, y, z, aabb, list, ent);
 						this.setBlockBounds(fl==5||fw==2?.1875f:fl==4?.5625f:0, 0, fl==3||fw==5?.1875f:fl==2?.5625f:0, fl==4||fw==3?.8125f:fl==5?.4375f:1, 1, fl==2||fw==4?.8125f:fl==3?.4375f:1);
 					}
 				}
 
 			}
 		}
-		super.addCollisionBoxesToList(world, x, y, z, aabb, list, ent);
+		addCollisionBox(world, x, y, z, aabb, list, ent);
 	}
 	@Override
-	public Set<AxisAlignedBB> addCustomSelectionBoxesToList(World world, int x, int y, int z, EntityPlayer player)
+	public ArrayList<AxisAlignedBB> addCustomSelectionBoxesToList(World world, int x, int y, int z)
 	{
-		Set<AxisAlignedBB> set = new HashSet<AxisAlignedBB>();
-		if(world.getTileEntity(x, y, z) instanceof TileEntityCrusher)
+		ArrayList<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
+		TileEntity tileEntity = world.getTileEntity(x, y, z);
+		if(tileEntity instanceof TileEntityCrusher)
 		{
-			TileEntityCrusher tile = (TileEntityCrusher)world.getTileEntity(x, y, z);
+			TileEntityCrusher tile = (TileEntityCrusher)tileEntity;
 			int pos = tile.pos;
 			if(pos%15>=11&&pos%15<=13)
 			{		
-				//				ChunkCoordinates cc = new ChunkCoordinates(x,y,z);
-				//				ClientEventHandler.additionalBlockBounds.removeAll(cc);
 				int fl = tile.facing;
 				int fw = tile.facing;
 				if(tile.mirrored)
@@ -417,63 +434,53 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 				{
 					if(pos%5==1)
 					{	
-						set.add(AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==2?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==5?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==3?.5625f:fw==5?.8125f:fw==4?.4375f:1));
-						//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==2?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==5?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==3?.5625f:fw==5?.8125f:fw==4?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-						set.add(AxisAlignedBB.getBoundingBox(fl==4||fw==3?.1875f:fl==5?.5625f:0, 0, fl==2||fw==4?.1875f:fl==3?.5625f:0, fl==5||fw==2?.8125f:fl==4?.4375f:1, 1, fl==3||fw==5?.8125f:fl==2?.4375f:1));
-						//						aabb = AxisAlignedBB.getBoundingBox(fl==4||fw==3?.1875f:fl==5?.5625f:0, 0, fl==2||fw==4?.1875f:fl==3?.5625f:0, fl==5||fw==2?.8125f:fl==4?.4375f:1, 1, fl==3||fw==5?.8125f:fl==2?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
+						list.add(AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==2?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==5?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==3?.5625f:fw==5?.8125f:fw==4?.4375f:1));
+						list.add(AxisAlignedBB.getBoundingBox(fl==4||fw==3?.1875f:fl==5?.5625f:0, 0, fl==2||fw==4?.1875f:fl==3?.5625f:0, fl==5||fw==2?.8125f:fl==4?.4375f:1, 1, fl==3||fw==5?.8125f:fl==2?.4375f:1));
 					}
 					else
 					{
-						set.add(AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==2?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==5?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==3?.5625f:fw==4?.8125f:fw==5?.4375f:1));
-						//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==2?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==5?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==3?.5625f:fw==4?.8125f:fw==5?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-						set.add(AxisAlignedBB.getBoundingBox(fl==4||fw==2?.1875f:fl==5?.5625f:0, 0, fl==2||fw==5?.1875f:fl==3?.5625f:0, fl==5||fw==3?.8125f:fl==4?.4375f:1, 1, fl==3||fw==4?.8125f:fl==2?.4375f:1));
-						//						aabb = AxisAlignedBB.getBoundingBox(fl==4||fw==2?.1875f:fl==5?.5625f:0, 0, fl==2||fw==5?.1875f:fl==3?.5625f:0, fl==5||fw==3?.8125f:fl==4?.4375f:1, 1, fl==3||fw==4?.8125f:fl==2?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
+						list.add(AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==2?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==5?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==3?.5625f:fw==4?.8125f:fw==5?.4375f:1));
+						list.add(AxisAlignedBB.getBoundingBox(fl==4||fw==2?.1875f:fl==5?.5625f:0, 0, fl==2||fw==5?.1875f:fl==3?.5625f:0, fl==5||fw==3?.8125f:fl==4?.4375f:1, 1, fl==3||fw==4?.8125f:fl==2?.4375f:1));
 					}
 				}
 				else if(pos/15==2 && (pos%5==1||pos%5==3))
 				{
 					if(pos%5==1)
 					{
-						set.add(AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==3?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==4?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==2?.5625f:fw==5?.8125f:fw==4?.4375f:1));
-						//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==3?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==4?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==2?.5625f:fw==5?.8125f:fw==4?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-						set.add(AxisAlignedBB.getBoundingBox(fl==5||fw==3?.1875f:fl==4?.5625f:0, 0, fl==3||fw==4?.1875f:fl==2?.5625f:0, fl==4||fw==2?.8125f:fl==5?.4375f:1, 1, fl==2||fw==5?.8125f:fl==3?.4375f:1));
-						//						aabb = AxisAlignedBB.getBoundingBox(fl==5||fw==3?.1875f:fl==4?.5625f:0, 0, fl==3||fw==4?.1875f:fl==2?.5625f:0, fl==4||fw==2?.8125f:fl==5?.4375f:1, 1, fl==2||fw==5?.8125f:fl==3?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
+						list.add(AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==3?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==4?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==2?.5625f:fw==5?.8125f:fw==4?.4375f:1));
+						list.add(AxisAlignedBB.getBoundingBox(fl==5||fw==3?.1875f:fl==4?.5625f:0, 0, fl==3||fw==4?.1875f:fl==2?.5625f:0, fl==4||fw==2?.8125f:fl==5?.4375f:1, 1, fl==2||fw==5?.8125f:fl==3?.4375f:1));
 					}
 					else
 					{
-						set.add(AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==3?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==4?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==2?.5625f:fw==4?.8125f:fw==5?.4375f:1));
-						//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==3?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==4?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==2?.5625f:fw==4?.8125f:fw==5?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-						set.add(AxisAlignedBB.getBoundingBox(fl==5||fw==2?.1875f:fl==4?.5625f:0, 0, fl==3||fw==5?.1875f:fl==2?.5625f:0, fl==4||fw==3?.8125f:fl==5?.4375f:1, 1, fl==2||fw==4?.8125f:fl==3?.4375f:1));
-						//						aabb = AxisAlignedBB.getBoundingBox(fl==5||fw==2?.1875f:fl==4?.5625f:0, 0, fl==3||fw==5?.1875f:fl==2?.5625f:0, fl==4||fw==3?.8125f:fl==5?.4375f:1, 1, fl==2||fw==4?.8125f:fl==3?.4375f:1);
-						//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
+						list.add(AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==3?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==4?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==2?.5625f:fw==4?.8125f:fw==5?.4375f:1));
+						list.add(AxisAlignedBB.getBoundingBox(fl==5||fw==2?.1875f:fl==4?.5625f:0, 0, fl==3||fw==5?.1875f:fl==2?.5625f:0, fl==4||fw==3?.8125f:fl==5?.4375f:1, 1, fl==2||fw==4?.8125f:fl==3?.4375f:1));
 					}
 				}
 			}
 			else if(pos==1 || pos==3 || pos==31 || pos==33)
 			{
-				//				ChunkCoordinates cc = new ChunkCoordinates(x,y,z);
-				//				ClientEventHandler.additionalBlockBounds.get(cc).clear();
 				int fl = tile.facing;
 				int fw = tile.facing;
 				if(tile.mirrored)
 					fw = ForgeDirection.OPPOSITES[fw];
-				set.add(AxisAlignedBB.getBoundingBox(0,0,0, 1,.5,1));
-				//				AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(0,0,0, 1,.5,1);
-				//				ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-
-				set.add(AxisAlignedBB.getBoundingBox(fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.5:.25,  .5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.5:.25,    fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.75:.5,  1.5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.75:.5));
-				//				aabb = AxisAlignedBB.getBoundingBox(fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.5:.25,  .5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.5:.25,    fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.75:.5,  1.5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.75:.5);
-				//				ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
+				list.add(AxisAlignedBB.getBoundingBox(0,0,0, 1,.5,1));
+				list.add(AxisAlignedBB.getBoundingBox(fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.5:.25,  .5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.5:.25,    fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.75:.5,  1.5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.75:.5));
+			}
+			else
+			{
+				float[] bounds = ((TileEntityMultiblockPart)tileEntity).getBlockBounds();
+				if(bounds!=null && bounds.length>5)
+					list.add(AxisAlignedBB.getBoundingBox(bounds[0],bounds[1],bounds[2], bounds[3],bounds[4],bounds[5]));
+				else
+					list.add(AxisAlignedBB.getBoundingBox(0,0,0, 1,1,1));
 			}
 		}
-		return set;
+		return list;
+	}
+	@Override
+	public boolean addSpecifiedSubBox(World world, int x, int y, int z, EntityPlayer player, AxisAlignedBB box, Vec3 hitVec, ArrayList<AxisAlignedBB> list)
+	{
+		return false;
 	}
 
 
@@ -486,68 +493,6 @@ public class BlockMetalMultiblocks extends BlockIEBase implements ICustomBoundin
 	@Override
 	public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z)
 	{
-		//		if(world.getTileEntity(x, y, z) instanceof TileEntityCrusher)
-		//		{
-		//			TileEntityCrusher tile = (TileEntityCrusher)world.getTileEntity(x, y, z);
-		//			int pos = tile.pos;
-		//			if(pos%15>=11&&pos%15<=13)
-		//			{		
-		//				ChunkCoordinates cc = new ChunkCoordinates(x,y,z);
-		//				ClientEventHandler.additionalBlockBounds.removeAll(cc);
-		//				int fl = tile.facing;
-		//				int fw = tile.facing;
-		//				if(tile.mirrored)
-		//					fw = ForgeDirection.OPPOSITES[fw];
-		//				if(pos/15==0 && (pos%5==1||pos%5==3))
-		//				{
-		//					if(pos%5==1)
-		//					{	
-		//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==2?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==5?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==3?.5625f:fw==5?.8125f:fw==4?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//						aabb = AxisAlignedBB.getBoundingBox(fl==4||fw==3?.1875f:fl==5?.5625f:0, 0, fl==2||fw==4?.1875f:fl==3?.5625f:0, fl==5||fw==2?.8125f:fl==4?.4375f:1, 1, fl==3||fw==5?.8125f:fl==2?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//					}
-		//					else
-		//					{
-		//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==4?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==2?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==5?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==3?.5625f:fw==4?.8125f:fw==5?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//						aabb = AxisAlignedBB.getBoundingBox(fl==4||fw==2?.1875f:fl==5?.5625f:0, 0, fl==2||fw==5?.1875f:fl==3?.5625f:0, fl==5||fw==3?.8125f:fl==4?.4375f:1, 1, fl==3||fw==4?.8125f:fl==2?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//					}
-		//				}
-		//				else if(pos/15==2 && (pos%5==1||pos%5==3))
-		//				{
-		//					if(pos%5==1)
-		//					{
-		//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==3?.1875f:fw==2?.5625f:0, 0, fl==3?.4375f:fw==4?.1875f:fw==5?.5625f:0, fl==4?.5625f:fw==2?.8125f:fw==3?.4375f:1, 1, fl==2?.5625f:fw==5?.8125f:fw==4?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//						aabb = AxisAlignedBB.getBoundingBox(fl==5||fw==3?.1875f:fl==4?.5625f:0, 0, fl==3||fw==4?.1875f:fl==2?.5625f:0, fl==4||fw==2?.8125f:fl==5?.4375f:1, 1, fl==2||fw==5?.8125f:fl==3?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//					}
-		//					else
-		//					{
-		//						AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(fl==5?.4375f:fw==2?.1875f:fw==3?.5625f:0, 0, fl==3?.4375f:fw==5?.1875f:fw==4?.5625f:0, fl==4?.5625f:fw==3?.8125f:fw==2?.4375f:1, 1, fl==2?.5625f:fw==4?.8125f:fw==5?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//						aabb = AxisAlignedBB.getBoundingBox(fl==5||fw==2?.1875f:fl==4?.5625f:0, 0, fl==3||fw==5?.1875f:fl==2?.5625f:0, fl==4||fw==3?.8125f:fl==5?.4375f:1, 1, fl==2||fw==4?.8125f:fl==3?.4375f:1);
-		//						ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//					}
-		//				}
-		//			}
-		//			else if(pos==1 || pos==3 || pos==31 || pos==33)
-		//			{
-		//				ChunkCoordinates cc = new ChunkCoordinates(x,y,z);
-		//				ClientEventHandler.additionalBlockBounds.get(cc).clear();
-		//				int fl = tile.facing;
-		//				int fw = tile.facing;
-		//				if(tile.mirrored)
-		//					fw = ForgeDirection.OPPOSITES[fw];
-		//				AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(0,0,0, 1,.5,1);
-		//				ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//
-		//				aabb = AxisAlignedBB.getBoundingBox(fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.5:.25,  .5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.5:.25,    fw==(pos%30==1?2:3)||fl==(pos<30?5:4)?.75:.5,  1.5,  fl==(pos<30?3:2)||fw==(pos%30==1?5:4)?.75:.5);
-		//				ClientEventHandler.addAdditionalBlockBounds(cc, aabb);
-		//			}
-		//		}
 		this.setBlockBoundsBasedOnState(world,x,y,z);
 		return super.getCollisionBoundingBoxFromPool(world, x, y, z);
 	}

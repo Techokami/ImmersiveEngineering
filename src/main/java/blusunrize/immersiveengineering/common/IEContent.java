@@ -1,12 +1,41 @@
 package blusunrize.immersiveengineering.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import blusunrize.immersiveengineering.ImmersiveEngineering;
+import blusunrize.immersiveengineering.api.MultiblockHandler;
+import blusunrize.immersiveengineering.api.crafting.BlastFurnaceRecipe;
+import blusunrize.immersiveengineering.api.crafting.CokeOvenRecipe;
+import blusunrize.immersiveengineering.api.energy.DieselHandler;
+import blusunrize.immersiveengineering.api.energy.ThermoelectricHandler;
+import blusunrize.immersiveengineering.api.energy.WireType;
+import blusunrize.immersiveengineering.api.tool.ExcavatorHandler;
+import blusunrize.immersiveengineering.common.blocks.*;
+import blusunrize.immersiveengineering.common.blocks.BlockIEBase.BlockIESimple;
+import blusunrize.immersiveengineering.common.blocks.metal.*;
+import blusunrize.immersiveengineering.common.blocks.multiblocks.*;
+import blusunrize.immersiveengineering.common.blocks.plant.BlockIECrop;
+import blusunrize.immersiveengineering.common.blocks.stone.BlockStoneDecoration;
+import blusunrize.immersiveengineering.common.blocks.stone.BlockStoneDevices;
+import blusunrize.immersiveengineering.common.blocks.stone.TileEntityBlastFurnace;
+import blusunrize.immersiveengineering.common.blocks.stone.TileEntityCokeOven;
+import blusunrize.immersiveengineering.common.blocks.wooden.*;
+import blusunrize.immersiveengineering.common.crafting.IEFuelHandler;
+import blusunrize.immersiveengineering.common.crafting.RecipeOreCrushing;
+import blusunrize.immersiveengineering.common.entities.*;
+import blusunrize.immersiveengineering.common.items.*;
+import blusunrize.immersiveengineering.common.util.IEAchievements;
+import blusunrize.immersiveengineering.common.util.IELogger;
+import blusunrize.immersiveengineering.common.world.IEWorldGen;
+import blusunrize.immersiveengineering.common.world.VillageEngineersHouse;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.registry.EntityRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.VillagerRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.gen.structure.MapGenStructureIO;
@@ -16,117 +45,9 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
-import blusunrize.immersiveengineering.ImmersiveEngineering;
-import blusunrize.immersiveengineering.api.MultiblockHandler;
-import blusunrize.immersiveengineering.api.crafting.BlastFurnaceRecipe;
-import blusunrize.immersiveengineering.api.crafting.CokeOvenRecipe;
-import blusunrize.immersiveengineering.api.energy.DieselHandler;
-import blusunrize.immersiveengineering.api.energy.ThermoelectricHandler;
-import blusunrize.immersiveengineering.api.energy.WireType;
-import blusunrize.immersiveengineering.api.tool.ExcavatorHandler;
-import blusunrize.immersiveengineering.common.blocks.BlockFakeLight;
-import blusunrize.immersiveengineering.common.blocks.BlockIEBase;
-import blusunrize.immersiveengineering.common.blocks.BlockIEBase.BlockIESimple;
-import blusunrize.immersiveengineering.common.blocks.BlockIESlabs;
-import blusunrize.immersiveengineering.common.blocks.BlockStorage;
-import blusunrize.immersiveengineering.common.blocks.ItemBlockIEBase;
-import blusunrize.immersiveengineering.common.blocks.TileEntityIESlab;
-import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration;
-import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDevices;
-import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDevices2;
-import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityArcFurnace;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityBreakerSwitch;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityBucketWheel;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCapacitorHV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCapacitorLV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCapacitorMV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConnectorHV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConnectorLV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConnectorMV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConnectorStructural;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConveyorBelt;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConveyorSorter;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCrusher;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityDieselGenerator;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityDynamo;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityElectricLantern;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityEnergyMeter;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityExcavator;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFermenter;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFloodLight;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFurnaceHeater;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityLantern;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityLightningRod;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityRefinery;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityRelayHV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntitySampleDrill;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntitySheetmetalTank;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntitySilo;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntitySkycrateDispenser;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntitySqueezer;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityStructuralArm;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityThermoelectricGen;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityTransformer;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityTransformerHV;
-import blusunrize.immersiveengineering.common.blocks.metal.TileEntityWallmountMetal;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockArcFurnace;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockBlastFurnace;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockBucketWheel;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockCokeOven;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockCrusher;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockDieselGenerator;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockExcavator;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockFermenter;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockLightningRod;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockRefinery;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockSheetmetalTank;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockSilo;
-import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockSqueezer;
-import blusunrize.immersiveengineering.common.blocks.plant.BlockIECrop;
-import blusunrize.immersiveengineering.common.blocks.stone.BlockStoneDecoration;
-import blusunrize.immersiveengineering.common.blocks.stone.BlockStoneDevices;
-import blusunrize.immersiveengineering.common.blocks.stone.TileEntityBlastFurnace;
-import blusunrize.immersiveengineering.common.blocks.stone.TileEntityCokeOven;
-import blusunrize.immersiveengineering.common.blocks.wooden.BlockIEWoodenStairs;
-import blusunrize.immersiveengineering.common.blocks.wooden.BlockWoodenDecoration;
-import blusunrize.immersiveengineering.common.blocks.wooden.BlockWoodenDevices;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityModWorkbench;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWallmount;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWatermill;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWindmill;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWindmillAdvanced;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWoodenBarrel;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWoodenCrate;
-import blusunrize.immersiveengineering.common.blocks.wooden.TileEntityWoodenPost;
-import blusunrize.immersiveengineering.common.crafting.IEFuelHandler;
-import blusunrize.immersiveengineering.common.crafting.RecipeOreCrushing;
-import blusunrize.immersiveengineering.common.entities.EntityRevolvershot;
-import blusunrize.immersiveengineering.common.entities.EntityRevolvershotHoming;
-import blusunrize.immersiveengineering.common.entities.EntitySkycrate;
-import blusunrize.immersiveengineering.common.entities.EntitySkylineHook;
-import blusunrize.immersiveengineering.common.entities.EntityWolfpackShot;
-import blusunrize.immersiveengineering.common.items.ItemBullet;
-import blusunrize.immersiveengineering.common.items.ItemDrill;
-import blusunrize.immersiveengineering.common.items.ItemDrillhead;
-import blusunrize.immersiveengineering.common.items.ItemEngineersBlueprint;
-import blusunrize.immersiveengineering.common.items.ItemGraphiteElectrode;
-import blusunrize.immersiveengineering.common.items.ItemIEBase;
-import blusunrize.immersiveengineering.common.items.ItemIESeed;
-import blusunrize.immersiveengineering.common.items.ItemIETool;
-import blusunrize.immersiveengineering.common.items.ItemRevolver;
-import blusunrize.immersiveengineering.common.items.ItemShader;
-import blusunrize.immersiveengineering.common.items.ItemSkyhook;
-import blusunrize.immersiveengineering.common.items.ItemToolUpgrade;
-import blusunrize.immersiveengineering.common.items.ItemWireCoil;
-import blusunrize.immersiveengineering.common.util.IEAchievements;
-import blusunrize.immersiveengineering.common.util.IELogger;
-import blusunrize.immersiveengineering.common.world.IEWorldGen;
-import blusunrize.immersiveengineering.common.world.VillageEngineersHouse;
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.registry.EntityRegistry;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.VillagerRegistry;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class IEContent
 {
@@ -160,6 +81,7 @@ public class IEContent
 	public static ItemIEBase itemBlueprint;
 	public static ItemIEBase itemGraphiteElectrode;
 	public static ItemIEBase itemShader;
+	public static ItemIEBase itemFakeIcons;
 	public static Fluid fluidCreosote;
 	public static boolean IECreosote=false;
 	public static Fluid fluidPlantoil;
@@ -186,7 +108,7 @@ public class IEContent
 		blockStoneDecoration = new BlockStoneDecoration();
 		blockCrop = new BlockIECrop("hemp", "0B","1B","2B","3B","4B","0T");
 		blockFakeLight = new BlockFakeLight();
-
+		
 		itemMetal = new ItemIEBase("metal", 64,
 				"ingotCopper","ingotAluminum","ingotLead","ingotSilver","ingotNickel","ingotConstantan","ingotElectrum","ingotSteel",  
 				"dustIron","dustGold","dustCopper","dustAluminum","dustLead","dustSilver","dustNickel","dustConstantan","dustElectrum",
@@ -231,6 +153,13 @@ public class IEContent
 		itemBlueprint = new ItemEngineersBlueprint();
 		itemGraphiteElectrode = new ItemGraphiteElectrode();
 		itemShader = new ItemShader();
+		itemFakeIcons =  new ItemIEBase("fakeIcon", 1, "birthday")
+		{
+			@Override
+			public void getSubItems(Item item, CreativeTabs tab, List list)
+			{
+			}
+		};
 
 		fluidCreosote = FluidRegistry.getFluid("creosote");
 		if(fluidCreosote==null)
@@ -370,6 +299,9 @@ public class IEContent
 		registerTile(TileEntityEnergyMeter.class);
 		registerTile(TileEntityElectricLantern.class);
 		registerTile(TileEntityFloodLight.class);
+		registerTile(TileEntityFluidPipe_old.class);
+		registerTile(TileEntityFluidPipe.class);
+		registerTile(TileEntityFluidPump.class);
 
 
 		registerTile(TileEntityCokeOven.class);
@@ -480,7 +412,7 @@ public class IEContent
 		}
 	}
 
-	public static void loadComplete()
+	public static void postInit()
 	{
 		//Crushing
 		if(!Config.getBoolean("disableHammerCrushing") || Config.getBoolean("forceHammerCrushing"))

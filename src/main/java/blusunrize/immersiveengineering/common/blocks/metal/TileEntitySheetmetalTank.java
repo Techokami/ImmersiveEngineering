@@ -122,10 +122,11 @@ public class TileEntitySheetmetalTank extends TileEntityMultiblockPart implement
 					for(int zz=-1;zz<=1;zz++)
 					{
 						ItemStack s = null;
-						if(worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz) instanceof TileEntitySheetmetalTank)
+						TileEntity te = worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz);
+						if(te instanceof TileEntitySheetmetalTank)
 						{
-							s = ((TileEntitySheetmetalTank)worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz)).getOriginalBlock();
-							((TileEntitySheetmetalTank)worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz)).formed=false;
+							s = ((TileEntitySheetmetalTank)te).getOriginalBlock();
+							((TileEntitySheetmetalTank)te).formed=false;
 						}
 						if(startX+xx==xCoord && startY+yy==yCoord && startZ+zz==zCoord)
 							s = this.getOriginalBlock();
@@ -151,7 +152,7 @@ public class TileEntitySheetmetalTank extends TileEntityMultiblockPart implement
 			return 0;
 		if(master()!=null)
 			return master().fill(from,resource,doFill);
-		int f =  tank.fill(resource, doFill);
+		int f = tank.fill(resource, doFill);
 		if(f>0 && doFill)
 		{
 			markDirty();
@@ -177,7 +178,7 @@ public class TileEntitySheetmetalTank extends TileEntityMultiblockPart implement
 			return null;
 		if(master()!=null)
 			return master().drain(from,maxDrain,doDrain);
-		FluidStack fs =  tank.drain(maxDrain, doDrain);
+		FluidStack fs = tank.drain(maxDrain, doDrain);
 		if(fs!=null && fs.amount>0 && doDrain)
 		{
 			markDirty();
@@ -193,16 +194,20 @@ public class TileEntitySheetmetalTank extends TileEntityMultiblockPart implement
 	@Override
 	public boolean canDrain(ForgeDirection from, Fluid fluid)
 	{
-		return formed&&(pos==4||pos==40);
+		return formed&&pos==4;
 	}
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection from)
 	{
-		if(!formed)
-			return new FluidTankInfo[]{};
-		if(master()!=null)
-			return master().getTankInfo(from);
-		return new FluidTankInfo[]{tank.getInfo()};
+		if (pos==4||pos==40) {
+			if (!formed)
+				return new FluidTankInfo[] {};
+			if (master() != null)
+				return master().getTankInfo(from);
+			return new FluidTankInfo[] { tank.getInfo() };
+		} else {
+			return new FluidTankInfo[0];
+		}
 	}
 
 

@@ -165,21 +165,23 @@ public class ImmersiveNetHandler
 				if(node.equals(con.start) || node.equals(con.end))
 				{
 					it.remove();
-					//if(node.equals(con.start) && toIIC(con.end, world)!=null && getConnections(world,con.end).isEmpty())
-					iic = toIIC(con.end, world);
-					if(iic!=null)
+					IImmersiveConnectable other;
+					if (node.equals(con.start))
+						other = toIIC(con.end, world);
+					else
+						other = toIIC(con.start, world);
+					if (iic!=null)
 						iic.removeCable(con);
-					//if(node.equals(con.end) && toIIC(con.start, world)!=null && getConnections(world,con.start).isEmpty())
-					iic = toIIC(con.start, world);
-					if(iic!=null)
-						iic.removeCable(con);
+					if (other!=null)
+						other.removeCable(con);
 
 					if(node.equals(con.end))
 					{
 						double dx = node.posX+.5+Math.signum(con.start.posX-con.end.posX);
 						double dy = node.posY+.5+Math.signum(con.start.posY-con.end.posY);
 						double dz = node.posZ+.5+Math.signum(con.start.posZ-con.end.posZ);
-						world.spawnEntityInWorld(new EntityItem(world, dx,dy,dz, con.cableType.getWireCoil()));
+						if(world.getGameRules().getGameRuleBooleanValue("doTileDrops"))
+							world.spawnEntityInWorld(new EntityItem(world, dx,dy,dz, con.cableType.getWireCoil()));
 						if(world.blockExists(con.start.posX,con.start.posY,con.start.posZ))
 							world.addBlockEvent(con.start.posX, con.start.posY, con.start.posZ, world.getBlock(con.start.posX,con.start.posY,con.start.posZ),-1,0);
 					}
@@ -216,15 +218,22 @@ public class ImmersiveNetHandler
 					if(node.equals(con.start) || node.equals(con.end))
 					{
 						it.remove();
-						toIIC(con.end, world).removeCable(con);
-						toIIC(con.start, world).removeCable(con);
-
+						IImmersiveConnectable other;
+						if (node.equals(con.start))
+							other = toIIC(con.end, world);
+						else
+							other = toIIC(con.start, world);
+						if (iic!=null)
+							iic.removeCable(con);
+						if (other!=null)
+							other.removeCable(con);
 						if(node.equals(con.end))
 						{
 							double dx = node.posX+.5+Math.signum(con.start.posX-con.end.posX);
 							double dy = node.posY+.5+Math.signum(con.start.posY-con.end.posY);
 							double dz = node.posZ+.5+Math.signum(con.start.posZ-con.end.posZ);
-							world.spawnEntityInWorld(new EntityItem(world, dx,dy,dz, con.cableType.getWireCoil()));
+							if(world.getGameRules().getGameRuleBooleanValue("doTileDrops"))
+								world.spawnEntityInWorld(new EntityItem(world, dx,dy,dz, con.cableType.getWireCoil()));
 							if(world.blockExists(con.start.posX,con.start.posY,con.start.posZ))
 								world.addBlockEvent(con.start.posX, con.start.posY, con.start.posZ, world.getBlock(con.start.posX,con.start.posY,con.start.posZ),-1,0);
 						}
@@ -320,11 +329,14 @@ public class ImmersiveNetHandler
 		ConcurrentSkipListSet<Connection> conL = getConnections(world, node);
 		if(conL!=null)
 			for(Connection con : conL)
-				if(toIIC(con.end, world)!=null)
+			{
+				IImmersiveConnectable end = toIIC(con.end, world);
+				if(end!=null)
 				{
-					openList.add(toIIC(con.end, world));
+					openList.add(end);
 					backtracker.put(con.end, node);
 				}
+			}
 
 		IImmersiveConnectable next = null;
 		final int closedListMax = 1200;
@@ -367,11 +379,14 @@ public class ImmersiveNetHandler
 				if(conLN!=null)
 					for(Connection con : conLN)
 						if(next.allowEnergyToPass(con))
-							if(toIIC(con.end, world)!=null && !checked.contains(con.end) && !openList.contains(toIIC(con.end, world)))
+						{
+							IImmersiveConnectable end = toIIC(con.end, world);
+							if(end!=null && !checked.contains(con.end) && !openList.contains(end))
 							{
-								openList.add(toIIC(con.end, world));
+								openList.add(end);
 								backtracker.put(con.end, toCC(next));
 							}
+						}
 				checked.add(toCC(next));
 			}
 			openList.remove(0);
@@ -496,7 +511,7 @@ public class ImmersiveNetHandler
 			float f = 0;
 			for(Connection c : subConnections)
 				f += (c.length/(float)c.cableType.getMaxLength())*c.cableType.getLossRatio();
-			return f;
+			return Math.min(f,1);
 		}
 	}
 }

@@ -1,16 +1,17 @@
 package blusunrize.immersiveengineering.common.blocks.multiblocks;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 import blusunrize.immersiveengineering.ImmersiveEngineering;
 import blusunrize.immersiveengineering.api.MultiblockHandler.IMultiblock;
+import blusunrize.immersiveengineering.client.ClientUtils;
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
@@ -107,7 +108,11 @@ public class MultiblockArcFurnace implements IMultiblock
 		te.formed=true;
 		te.pos=62;
 		te.facing=4;
-		TileEntityRendererDispatcher.instance.renderTileEntityAt(te, -.5D, 0.0D, -.5D, 0.0F);
+		ClientUtils.tes().startDrawingQuads();
+		ClientUtils.tes().setTranslation(-.5,0,-.5);
+		ClientUtils.handleStaticTileRenderer(te, false);
+		ClientUtils.tes().setTranslation(0,0,0);
+		ClientUtils.tes().draw();
 	}
 
 	@Override
@@ -157,9 +162,10 @@ public class MultiblockArcFurnace implements IMultiblock
 							int zz = startZ+ (side==2?l: side==3?-l: side==5?-ww : ww);
 
 							world.setBlock(xx, yy, zz, IEContent.blockMetalMultiblocks, BlockMetalMultiblocks.META_arcFurnace, 0x3);
-							if(world.getTileEntity(xx, yy, zz) instanceof TileEntityArcFurnace)
+							TileEntity curr = world.getTileEntity(xx, yy, zz);
+							if(curr instanceof TileEntityArcFurnace)
 							{
-								TileEntityArcFurnace tile = (TileEntityArcFurnace)world.getTileEntity(xx,yy,zz);
+								TileEntityArcFurnace tile = (TileEntityArcFurnace)curr;
 								tile.facing=side;
 								tile.formed=true;
 								tile.pos = (h+2)*25 + (l+2)*5 + (w+2);

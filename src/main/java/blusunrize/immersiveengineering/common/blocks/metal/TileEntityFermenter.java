@@ -29,7 +29,7 @@ public class TileEntityFermenter extends TileEntityMultiblockPart implements IFl
 {
 	public int facing = 2;
 	public FluidTank tank = new FluidTank(12000);
-	public EnergyStorage energyStorage = new EnergyStorage(32000,256,32000);
+	public EnergyStorage energyStorage = new EnergyStorage(32000,Math.max(256, Config.getInt("fermenter_consumption")));
 	ItemStack[] inventory = new ItemStack[12];
 	public int tick=0;
 	int processMaxTime = 0;
@@ -374,10 +374,11 @@ public class TileEntityFermenter extends TileEntityMultiblockPart implements IFl
 						int zz = (f==2?l: f==3?-l: f==5?-w: w);
 
 						ItemStack s = null;
-						if(worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz) instanceof TileEntityFermenter)
+						TileEntity te = worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz);
+						if(te instanceof TileEntityFermenter)
 						{
-							s = ((TileEntityFermenter)worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz)).getOriginalBlock();
-							((TileEntityFermenter)worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz)).formed=false;
+							s = ((TileEntityFermenter)te).getOriginalBlock();
+							((TileEntityFermenter)te).formed=false;
 						}
 						if(startX+xx==xCoord && startY+yy==yCoord && startZ+zz==zCoord)
 							s = this.getOriginalBlock();

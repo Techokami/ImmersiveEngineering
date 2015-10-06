@@ -40,15 +40,19 @@ public class BlockWoodenDecoration extends BlockIEBase implements blusunrize.aqu
 	}
 
 	@Override
-	public int getRenderType()
+	public boolean isOpaqueCube()
 	{
-		return BlockRenderWoodenDecoration.renderID;
+		return false;
 	}
-
 	@Override
 	public boolean renderAsNormalBlock()
 	{
 		return false;
+	}
+	@Override
+	public int getRenderType()
+	{
+		return BlockRenderWoodenDecoration.renderID;
 	}
 
 	@Override
@@ -77,12 +81,13 @@ public class BlockWoodenDecoration extends BlockIEBase implements blusunrize.aqu
 			return side==DOWN;
 		if(meta==3)
 			return side==UP;
-		if(world.getTileEntity(x,y,z) instanceof TileEntityWallmount)
+		TileEntity te = world.getTileEntity(x, y, z);
+		if(te instanceof TileEntityWallmount)
 		{
 			if(side==UP)
-				return ((TileEntityWallmount)world.getTileEntity(x,y,z)).inverted;
+				return ((TileEntityWallmount)te).inverted;
 			else if(side==DOWN)
-				return !((TileEntityWallmount)world.getTileEntity(x,y,z)).inverted;
+				return !((TileEntityWallmount)te).inverted;
 			else
 				return true;
 		}
@@ -153,7 +158,9 @@ public class BlockWoodenDecoration extends BlockIEBase implements blusunrize.aqu
 	public boolean canConnectFenceTo(IBlockAccess world, int x, int y, int z)
 	{
 		Block block = world.getBlock(x, y, z);
-		return block != this && block != Blocks.fence_gate ? (block.getMaterial().isOpaque() && block.renderAsNormalBlock() ? block.getMaterial() != Material.gourd : false) : true;
+		if(block==this && world.getBlockMetadata(x, y, z)==1)
+			return true;
+		return block != Blocks.fence_gate ? (block.getMaterial().isOpaque() && block.renderAsNormalBlock() ? block.getMaterial() != Material.gourd : false) : true;
 	}
 
 	@Override

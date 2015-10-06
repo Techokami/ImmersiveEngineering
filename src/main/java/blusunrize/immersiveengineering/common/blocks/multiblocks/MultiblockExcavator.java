@@ -1,13 +1,14 @@
 package blusunrize.immersiveengineering.common.blocks.multiblocks;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import blusunrize.immersiveengineering.api.MultiblockHandler.IMultiblock;
+import blusunrize.immersiveengineering.client.ClientUtils;
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
@@ -82,7 +83,7 @@ public class MultiblockExcavator implements IMultiblock
 		te.formed=true;
 		te.pos=4;
 		te.facing=3;
-		TileEntityRendererDispatcher.instance.renderTileEntityAt(te, -.5D, -.5D, 2.5D, 0.0F);
+		ClientUtils.handleStaticTileRenderer(te, false);
 	}
 	@Override
 	public float getManualScale()
@@ -138,9 +139,10 @@ public class MultiblockExcavator implements IMultiblock
 						int zz = startZ+ (side==2?l: side==3?-l: side==5?-ww : ww);
 
 						world.setBlock(xx, yy, zz, IEContent.blockMetalMultiblocks, BlockMetalMultiblocks.META_excavator, 0x3);
-						if(world.getTileEntity(xx, yy, zz) instanceof TileEntityExcavator)
+						TileEntity curr = world.getTileEntity(xx, yy, zz);
+						if(curr instanceof TileEntityExcavator)
 						{
-							TileEntityExcavator tile = (TileEntityExcavator)world.getTileEntity(xx,yy,zz);
+							TileEntityExcavator tile = (TileEntityExcavator)curr;
 							tile.facing=side;
 							tile.formed=true;
 							tile.pos = l*9 + (h+1)*3 + (w+1);

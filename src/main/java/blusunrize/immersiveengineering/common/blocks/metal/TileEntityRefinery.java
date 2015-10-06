@@ -34,7 +34,7 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 	public FluidTank tank0 = new FluidTank(12000);
 	public FluidTank tank1 = new FluidTank(12000);
 	public FluidTank tank2 = new FluidTank(12000);
-	public EnergyStorage energyStorage = new EnergyStorage(32000,256,32000);
+	public EnergyStorage energyStorage = new EnergyStorage(32000,Math.max(256, Config.getInt("refinery_consumption")));
 	public ItemStack[] inventory = new ItemStack[6];
 
 	public TileEntityRefinery master()
@@ -379,10 +379,11 @@ public class TileEntityRefinery extends TileEntityMultiblockPart implements IFlu
 
 
 						ItemStack s = null;
-						if(worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz) instanceof TileEntityRefinery)
+						TileEntity te = worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz);
+						if(te instanceof TileEntityRefinery)
 						{
-							s = ((TileEntityRefinery)worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz)).getOriginalBlock();
-							((TileEntityRefinery)worldObj.getTileEntity(startX+xx,startY+yy,startZ+zz)).formed=false;
+							s = ((TileEntityRefinery)te).getOriginalBlock();
+							((TileEntityRefinery)te).formed=false;
 						}
 						if(startX+xx==xCoord && startY+yy==yCoord && startZ+zz==zCoord)
 							s = this.getOriginalBlock();

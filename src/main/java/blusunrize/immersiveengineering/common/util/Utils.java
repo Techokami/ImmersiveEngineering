@@ -5,7 +5,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
@@ -14,19 +16,31 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.StatCollector;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.BlockFluidBase;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidContainerItem;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
+import blusunrize.immersiveengineering.api.DirectionalChunkCoords;
 import blusunrize.immersiveengineering.api.energy.IImmersiveConnectable;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.registry.GameData;
@@ -81,6 +95,13 @@ public class Utils
 		return -1;
 	}
 
+	public static FluidStack copyFluidStackWithAmount(FluidStack stack, int amount)
+	{
+		if(stack==null)
+			return null;
+		return new FluidStack(stack, amount);
+	}
+
 	public static ChunkCoordinates toCC(Object object)
 	{
 		if(object instanceof ChunkCoordinates)
@@ -89,13 +110,25 @@ public class Utils
 			return new ChunkCoordinates(((TileEntity)object).xCoord,((TileEntity)object).yCoord,((TileEntity)object).zCoord);
 		return null;
 	}
+
+	public static DirectionalChunkCoords toDirCC(Object object, ForgeDirection direction)
+	{
+		if(object instanceof ChunkCoordinates)
+			return new DirectionalChunkCoords((ChunkCoordinates)object, direction);
+		if(object instanceof TileEntity)
+			return new DirectionalChunkCoords(((TileEntity)object).xCoord,((TileEntity)object).yCoord,((TileEntity)object).zCoord, direction);
+		return null;
+	}
+
 	public static IImmersiveConnectable toIIC(Object object, World world)
 	{
 		if(object instanceof IImmersiveConnectable)
 			return (IImmersiveConnectable)object;
-		else if(object instanceof ChunkCoordinates && world!=null && world.blockExists( ((ChunkCoordinates)object).posX, ((ChunkCoordinates)object).posY, ((ChunkCoordinates)object).posZ) && world.getTileEntity( ((ChunkCoordinates)object).posX, ((ChunkCoordinates)object).posY, ((ChunkCoordinates)object).posZ) instanceof IImmersiveConnectable)
+		else if(object instanceof ChunkCoordinates && world!=null && world.blockExists(((ChunkCoordinates) object).posX, ((ChunkCoordinates) object).posY, ((ChunkCoordinates) object).posZ))
 		{
-			return (IImmersiveConnectable)world.getTileEntity( ((ChunkCoordinates)object).posX, ((ChunkCoordinates)object).posY, ((ChunkCoordinates)object).posZ);
+			TileEntity te = world.getTileEntity(((ChunkCoordinates) object).posX, ((ChunkCoordinates) object).posY, ((ChunkCoordinates) object).posZ);
+			if(te instanceof IImmersiveConnectable)
+				return (IImmersiveConnectable) te;
 		}
 		return null;
 	}
@@ -155,7 +188,6 @@ public class Utils
 		Vec3 vec31 = vec3.addVector((double)f7 * d3, (double)f6 * d3, (double)f8 * d3);
 		return world.func_147447_a(vec3, vec31, bool, !bool, false);
 	}
-	private static double DEBUG_RAYTRACE_THRESHOLD = 0.5; // ToDo: only for debugging, remove before release
 	/**
 	 * Tests whether a clear line of sight between the two blocks exists.
 	 * Tests against bounding boxes, ignores liquids.
@@ -180,27 +212,22 @@ public class Utils
 			double restartVecY;
 			double restartVecZ;
 			if(pos0.xCoord>=aabb0.minX && pos0.xCoord<=aabb0.maxX){
-				restartVecX = (rayTraceDiff.xCoord>DEBUG_RAYTRACE_THRESHOLD)?aabb0.maxX:(rayTraceDiff.xCoord<(0-DEBUG_RAYTRACE_THRESHOLD))?aabb0.minX:pos0.xCoord;
+				restartVecX = (rayTraceDiff.xCoord>0.5)?aabb0.maxX:(rayTraceDiff.xCoord<(-0.5))?aabb0.minX:pos0.xCoord;
 			} else {
 				restartVecX = pos0.xCoord;
 			}
 			if(pos0.yCoord>=aabb0.minY && pos0.yCoord<=aabb0.maxY){
-				restartVecY = (rayTraceDiff.yCoord>DEBUG_RAYTRACE_THRESHOLD)?aabb0.maxY:(rayTraceDiff.yCoord<(0-DEBUG_RAYTRACE_THRESHOLD))?aabb0.minY:pos0.yCoord;
+				restartVecY = (rayTraceDiff.yCoord>0.5)?aabb0.maxY:(rayTraceDiff.yCoord<(-0.5))?aabb0.minY:pos0.yCoord;
 			} else {
 				restartVecY = pos0.yCoord;
 			}
 			if(pos0.zCoord>=aabb0.minZ && pos0.zCoord<=aabb0.maxZ){
-				restartVecZ = (rayTraceDiff.zCoord>DEBUG_RAYTRACE_THRESHOLD)?aabb0.maxZ:(rayTraceDiff.zCoord<(0-DEBUG_RAYTRACE_THRESHOLD))?aabb0.minZ:pos0.zCoord;
+				restartVecZ = (rayTraceDiff.zCoord>0.5)?aabb0.maxZ:(rayTraceDiff.zCoord<(-0.5))?aabb0.minZ:pos0.zCoord;
 			} else {
 				restartVecZ = pos0.zCoord;
 			}
 			Vec3 restartVec = Vec3.createVectorHelper(restartVecX, restartVecY, restartVecZ);
-			IELogger.error("Raytracing failed. Start vector was "+pos0+", moving by "+pos0.subtract(restartVec)+" to "+restartVec);
 			mop = world.rayTraceBlocks(restartVec, pos1);
-			if(mop!=null && mop.blockX==cc0.posX&&mop.blockY==cc0.posY&&mop.blockZ==cc0.posZ)
-			{
-				IELogger.error("Raytracing failed AGAIN. Hit start block at "+mop.hitVec);
-			}
 		}
 		return mop==null || (mop.blockX==cc1.posX&&mop.blockY==cc1.posY&&mop.blockZ==cc1.posZ);
 	}
@@ -298,6 +325,73 @@ public class Utils
 	public static Vec3 addVectors(Vec3 vec0, Vec3 vec1)
 	{
 		return vec0.addVector(vec1.xCoord,vec1.yCoord,vec1.zCoord);
+	}
+
+	public static boolean isVecInEntityHead(EntityLivingBase entity, Vec3 vec)
+	{
+		if(entity.height/entity.width<2)//Crude check to see if the entity is bipedal or at least upright (this should work for blazes)
+			return false;
+		double d = vec.yCoord-(entity.posY+entity.getEyeHeight());
+		if(Math.abs(d)<.25)
+			return true;
+		return false;
+	}
+
+	public static NBTTagCompound getRandomFireworkExplosion(Random rand, int preType)
+	{
+		NBTTagCompound tag = new NBTTagCompound();
+		NBTTagCompound expl = new NBTTagCompound();
+		expl.setBoolean("Flicker", true);
+		expl.setBoolean("Trail", true);
+		int[] colors = new int[rand.nextInt(8) + 1];
+		for (int i = 0; i < colors.length; i++)
+		{
+			int j = rand.nextInt(11)+1;
+			if(j>2)
+				j++;
+			if(j>6)
+				j+=2;
+			//no black, brown, light grey, grey or white
+			colors[i] = ItemDye.field_150922_c[j];
+		}
+		expl.setIntArray("Colors", colors);
+		int type = preType>=0?preType: rand.nextInt(4);
+		if(preType<0 && type==3)
+			type = 4;
+		expl.setByte("Type", (byte) type);
+		NBTTagList list = new NBTTagList();
+		list.appendTag(expl);
+		tag.setTag("Explosions", list);
+		
+		return tag;
+	}
+
+	public static FluidStack drainFluidBlock(World world, int x, int y, int z, boolean doDrain)
+	{
+		Block b = world.getBlock(x, y, z);
+		Fluid f = FluidRegistry.lookupFluidForBlock(b);
+
+		if(f!=null)
+		{
+			if(b instanceof IFluidBlock)
+			{
+				if(((IFluidBlock)b).canDrain(world, x, y, z))
+					return ((IFluidBlock) b).drain(world, x, y, z, doDrain);
+				else
+					return null;
+			}
+			else
+			{
+				if(world.getBlockMetadata(x,y,z)==0)
+				{
+					if(doDrain)
+						world.setBlockToAir(x, y, z);
+					return new FluidStack(f, 1000);
+				}
+				return null;
+			}
+		}
+		return null;
 	}
 
 	public static Collection<ItemStack> getContainersFilledWith(FluidStack fluidStack)
@@ -505,7 +599,7 @@ public class Utils
 			return false;
 		return FluidContainerRegistry.isContainer(stack)||stack.getItem() instanceof IFluidContainerItem;
 	}
-	
+
 	public static boolean fillPlayerItemFromFluidHandler(World world, IFluidHandler handler, EntityPlayer player, FluidStack tankFluid)
 	{
 		ItemStack equipped = player.getCurrentEquippedItem();

@@ -3,6 +3,7 @@ package blusunrize.immersiveengineering.client.render;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 
@@ -10,8 +11,13 @@ import org.lwjgl.opengl.GL11;
 
 import blusunrize.immersiveengineering.client.ClientUtils;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityArcFurnace;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCrusher;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityDieselGenerator;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityExcavator;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFermenter;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityLightningRod;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityRefinery;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntitySqueezer;
 import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockArcFurnace;
 import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockBucketWheel;
@@ -33,7 +39,6 @@ public class BlockRenderMetalMultiblocks implements ISimpleBlockRenderingHandler
 	{
 		GL11.glPushMatrix();
 		try{
-
 			if(metadata==BlockMetalMultiblocks.META_lightningRod)
 			{
 				//				block.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
@@ -189,13 +194,14 @@ public class BlockRenderMetalMultiblocks implements ISimpleBlockRenderingHandler
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer)
 	{
 		int metadata = world.getBlockMetadata(x, y, z);
+		TileEntity te = world.getTileEntity(x, y, z);
 		if(metadata==BlockMetalMultiblocks.META_lightningRod)
 		{
 			IIcon iTop = block.getIcon(0, metadata);
 			IIcon iSide = block.getIcon(2, metadata);
 			int pos = 4;
-			if(world.getTileEntity(x,y,z) instanceof TileEntityLightningRod && ((TileEntityLightningRod)world.getTileEntity(x,y,z)).formed )
-				pos = ((TileEntityLightningRod)world.getTileEntity(x,y,z)).pos;
+			if(te instanceof TileEntityLightningRod && ((TileEntityLightningRod)te).formed )
+				pos = ((TileEntityLightningRod)te).pos;
 			double[][] uv = new double[6][4];
 			for(int i=0; i<2; i++)
 			{
@@ -216,9 +222,9 @@ public class BlockRenderMetalMultiblocks implements ISimpleBlockRenderingHandler
 		}
 		else if(metadata==BlockMetalMultiblocks.META_squeezer)
 		{
-			if(world.getTileEntity(x, y, z) instanceof TileEntitySqueezer && ((TileEntitySqueezer)world.getTileEntity(x,y,z)).formed)
+			if(te instanceof TileEntitySqueezer && ((TileEntitySqueezer)te).formed)
 			{
-				if(((TileEntitySqueezer)world.getTileEntity(x,y,z)).pos==13)
+				if(((TileEntitySqueezer)te).pos==13)
 					renderer.setRenderBounds(-1,-1,-1, 2,2,2);
 				else
 					return false;
@@ -229,9 +235,9 @@ public class BlockRenderMetalMultiblocks implements ISimpleBlockRenderingHandler
 		}
 		else if(metadata==BlockMetalMultiblocks.META_fermenter)
 		{
-			if(world.getTileEntity(x, y, z) instanceof TileEntityFermenter && ((TileEntityFermenter)world.getTileEntity(x,y,z)).formed)
+			if(te instanceof TileEntityFermenter && ((TileEntityFermenter)te).formed)
 			{
-				if(((TileEntityFermenter)world.getTileEntity(x,y,z)).pos==13)
+				if(((TileEntityFermenter)te).pos==13)
 					renderer.setRenderBounds(-1,-1,-1, 2,2,2);
 				else
 					return false;
@@ -240,6 +246,16 @@ public class BlockRenderMetalMultiblocks implements ISimpleBlockRenderingHandler
 				renderer.setRenderBounds(0,0,0, 1,1,1);
 			return renderer.renderStandardBlock(block, x, y, z);
 		}
+		else if(te instanceof TileEntityDieselGenerator && ((TileEntityDieselGenerator)te).pos==31)
+			ClientUtils.handleStaticTileRenderer(te);
+		else if(te instanceof TileEntityRefinery && ((TileEntityRefinery)te).pos==17)
+			ClientUtils.handleStaticTileRenderer(te);
+		else if(te instanceof TileEntityCrusher && ((TileEntityCrusher)te).pos==17)
+			ClientUtils.handleStaticTileRenderer(te);
+		else if(te instanceof TileEntityExcavator && ((TileEntityExcavator)te).pos==4)
+			ClientUtils.handleStaticTileRenderer(te);
+		else if(te instanceof TileEntityArcFurnace && ((TileEntityArcFurnace)te).pos==62)
+			ClientUtils.handleStaticTileRenderer(te);
 		return false;
 	}
 

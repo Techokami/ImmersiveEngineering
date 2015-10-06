@@ -70,6 +70,9 @@ import blusunrize.immersiveengineering.client.render.TileRenderElectricLantern;
 import blusunrize.immersiveengineering.client.render.TileRenderEnergyMeter;
 import blusunrize.immersiveengineering.client.render.TileRenderExcavator;
 import blusunrize.immersiveengineering.client.render.TileRenderFloodLight;
+import blusunrize.immersiveengineering.client.render.TileRenderFluidPipe;
+import blusunrize.immersiveengineering.client.render.TileRenderFluidPipe_old;
+import blusunrize.immersiveengineering.client.render.TileRenderFluidPump;
 import blusunrize.immersiveengineering.client.render.TileRenderLantern;
 import blusunrize.immersiveengineering.client.render.TileRenderPost;
 import blusunrize.immersiveengineering.client.render.TileRenderRefinery;
@@ -105,6 +108,9 @@ import blusunrize.immersiveengineering.common.blocks.metal.TileEntityEnergyMeter
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityExcavator;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFermenter;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFloodLight;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFluidPipe;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFluidPipe_old;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityFluidPump;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityLantern;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityRefinery;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityRelayHV;
@@ -187,6 +193,10 @@ public class ClientProxy extends CommonProxy
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySilo.class, new TileRenderSilo());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityElectricLantern.class, new TileRenderElectricLantern());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityFloodLight.class, new TileRenderFloodLight());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityFluidPipe_old.class, new TileRenderFluidPipe_old());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityFluidPipe.class, new TileRenderFluidPipe());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityFluidPump.class, new TileRenderFluidPump());
+
 		//WOOD
 		RenderingRegistry.registerBlockHandler(new BlockRenderWoodenDevices());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWoodenPost.class, new TileRenderPost());
@@ -224,14 +234,14 @@ public class ClientProxy extends CommonProxy
 	}
 
 	@Override
-	public void loadComplete()
+	public void postInit()
 	{
 		ManualHelper.ieManualInstance = new IEManualInstance();
 		ManualHelper.addEntry("introduction", ManualHelper.CAT_GENERAL,
 				new ManualPages.Text(ManualHelper.getManual(), "introduction0"),
 				new ManualPages.Text(ManualHelper.getManual(), "introduction1"),
 				new ManualPages.Crafting(ManualHelper.getManual(), "introductionHammer", new ItemStack(IEContent.itemTool,1,0)));
-		ManualHelper.addEntry("ores", ManualHelper.CAT_GENERAL, 
+		ManualHelper.addEntry("ores", ManualHelper.CAT_GENERAL,
 				new ManualPages.ItemDisplay(ManualHelper.getManual(), "oresCopper", new ItemStack(IEContent.blockOres,1,0),new ItemStack(IEContent.itemMetal,1,0)),
 				new ManualPages.ItemDisplay(ManualHelper.getManual(), "oresBauxite", new ItemStack(IEContent.blockOres,1,1),new ItemStack(IEContent.itemMetal,1,1)),
 				new ManualPages.ItemDisplay(ManualHelper.getManual(), "oresLead", new ItemStack(IEContent.blockOres,1,2),new ItemStack(IEContent.itemMetal,1,2)),
@@ -247,12 +257,12 @@ public class ClientProxy extends CommonProxy
 			recipes.add(new PositionedItemStack[]{ new PositionedItemStack(ingot, 24, 0), new PositionedItemStack(new ItemStack(IEContent.itemTool,1,0), 42, 0), new PositionedItemStack(new ItemStack(IEContent.itemMetal,1,8+i), 78, 0)});
 		}
 		PositionedItemStack[][] recA = recipes.toArray(new PositionedItemStack[0][0]);
-		ManualHelper.addEntry("oreProcessing", ManualHelper.CAT_GENERAL, 
+		ManualHelper.addEntry("oreProcessing", ManualHelper.CAT_GENERAL,
 				new ManualPages.CraftingMulti(ManualHelper.getManual(), "oreProcessing0", (Object[])recA),
 				new ManualPages.CraftingMulti(ManualHelper.getManual(), "oreProcessing1", (Object[])new PositionedItemStack[][]{
 					new PositionedItemStack[]{new PositionedItemStack(OreDictionary.getOres("dustCopper"),24,0), new PositionedItemStack(OreDictionary.getOres("dustNickel"),42,0), new PositionedItemStack(new ItemStack(IEContent.itemMetal,2,15),78,0)},
 					new PositionedItemStack[]{new PositionedItemStack(OreDictionary.getOres("dustGold"),24,0), new PositionedItemStack(OreDictionary.getOres("dustSilver"),42,0), new PositionedItemStack(new ItemStack(IEContent.itemMetal,2,16),78,0)}}));
-		ManualHelper.addEntry("hemp", ManualHelper.CAT_GENERAL, 
+		ManualHelper.addEntry("hemp", ManualHelper.CAT_GENERAL,
 				new ManualPages.ItemDisplay(ManualHelper.getManual(), "hemp0", new ItemStack(IEContent.blockCrop,1,5),new ItemStack(IEContent.itemSeeds)));
 		ManualHelper.addEntry("cokeoven", ManualHelper.CAT_GENERAL,
 				new ManualPages.Text(ManualHelper.getManual(), "cokeoven0"),
@@ -304,17 +314,17 @@ public class ClientProxy extends CommonProxy
 
 
 		ManualHelper.addEntry("wiring", ManualHelper.CAT_ENERGY,
-				new ManualPages.Text(ManualHelper.getManual(), "wiring0"), 
+				new ManualPages.Text(ManualHelper.getManual(), "wiring0"),
 				new ManualPages.Crafting(ManualHelper.getManual(), "wiring1", new ItemStack(IEContent.itemWireCoil,1,OreDictionary.WILDCARD_VALUE)),
 				new ManualPages.Image(ManualHelper.getManual(), "wiring2", "immersiveengineering:textures/misc/wiring.png;0;0;110;40", "immersiveengineering:textures/misc/wiring.png;0;40;110;30"),
 				new ManualPages.Image(ManualHelper.getManual(), "wiring3", "immersiveengineering:textures/misc/wiring.png;0;70;110;60", "immersiveengineering:textures/misc/wiring.png;0;130;110;60"),
 				new ManualPages.CraftingMulti(ManualHelper.getManual(), "wiringConnector", new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_connectorLV),new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_connectorMV),new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_relayHV),new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_connectorHV)),
 				new ManualPages.CraftingMulti(ManualHelper.getManual(), "wiringCapacitor", new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_capacitorLV),new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_capacitorMV),new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_capacitorHV)),
 				new ManualPages.CraftingMulti(ManualHelper.getManual(), "wiringTransformer0", new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_transformer),new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_transformerHV)),
-				new ManualPages.Text(ManualHelper.getManual(), "wiringTransformer1"), 
+				new ManualPages.Text(ManualHelper.getManual(), "wiringTransformer1"),
 				new ManualPages.Crafting(ManualHelper.getManual(), "wiringCutters", new ItemStack(IEContent.itemTool,1,1)),
 				new ManualPages.Crafting(ManualHelper.getManual(), "wiringVoltmeter", new ItemStack(IEContent.itemTool,1,2)));
-		ManualHelper.getManual().addEntry("generator", ManualHelper.CAT_ENERGY, 
+		ManualHelper.getManual().addEntry("generator", ManualHelper.CAT_ENERGY,
 				new ManualPages.Crafting(ManualHelper.getManual(), "generator0", new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_dynamo)),
 				new ManualPages.CraftingMulti(ManualHelper.getManual(), "generatorWindmill", new ItemStack(IEContent.blockWoodenDevice,1,2),new ItemStack(IEContent.itemMaterial,1,2)),
 				new ManualPages.CraftingMulti(ManualHelper.getManual(), "generatorWatermill", new ItemStack(IEContent.blockWoodenDevice,1,1),new ItemStack(IEContent.itemMaterial,1,1)),
@@ -322,7 +332,7 @@ public class ClientProxy extends CommonProxy
 		ManualHelper.getManual().addEntry("breaker", ManualHelper.CAT_ENERGY, new ManualPages.Crafting(ManualHelper.getManual(), "breaker0", new ItemStack(IEContent.blockMetalDevice2,1,BlockMetalDevices2.META_breakerSwitch)),new ManualPages.Text(ManualHelper.getManual(), "breaker1"));
 		Map<String,Integer> sortedMap = ThermoelectricHandler.getThermalValuesSorted(true);
 		String[][] table = formatToTable_ItemIntHashmap(sortedMap,"K");	
-		ManualHelper.getManual().addEntry("thermoElectric", ManualHelper.CAT_ENERGY, 
+		ManualHelper.getManual().addEntry("thermoElectric", ManualHelper.CAT_ENERGY,
 				new ManualPages.Crafting(ManualHelper.getManual(), "thermoElectric0", new ItemStack(IEContent.blockMetalDevice,1,BlockMetalDevices.META_thermoelectricGen)),
 				new ManualPages.Table(ManualHelper.getManual(), "thermoElectric1", table, false));
 		ManualHelper.addEntry("highvoltage", ManualHelper.CAT_ENERGY,
@@ -417,30 +427,31 @@ public class ClientProxy extends CommonProxy
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z)
 	{
-		if(ID==Lib.GUIID_CokeOven && world.getTileEntity(x, y, z) instanceof TileEntityCokeOven)
-			return new GuiCokeOven(player.inventory, (TileEntityCokeOven) world.getTileEntity(x, y, z));
-		if(ID==Lib.GUIID_BlastFurnace && world.getTileEntity(x, y, z) instanceof TileEntityBlastFurnace)
-			return new GuiBlastFurnace(player.inventory, (TileEntityBlastFurnace) world.getTileEntity(x, y, z));
+		TileEntity te = world.getTileEntity(x, y, z);
+		if(ID==Lib.GUIID_CokeOven && te instanceof TileEntityCokeOven)
+			return new GuiCokeOven(player.inventory, (TileEntityCokeOven) te);
+		if(ID==Lib.GUIID_BlastFurnace && te instanceof TileEntityBlastFurnace)
+			return new GuiBlastFurnace(player.inventory, (TileEntityBlastFurnace) te);
 		if(ID==Lib.GUIID_Revolver && player.getCurrentEquippedItem()!=null && player.getCurrentEquippedItem().getItem() instanceof ItemRevolver)
 			return new GuiRevolver(player.inventory, world);
 		if(ID==Lib.GUIID_Manual && ManualHelper.getManual()!=null && player.getCurrentEquippedItem()!=null && OreDictionary.itemMatches(new ItemStack(IEContent.itemTool,1,3), player.getCurrentEquippedItem(), false))
 			return ManualHelper.getManual().getGui();
-		if(ID==Lib.GUIID_WoodenCrate && world.getTileEntity(x, y, z) instanceof TileEntityWoodenCrate)
-			return new GuiCrate(player.inventory, (TileEntityWoodenCrate) world.getTileEntity(x, y, z));
-		if(ID==Lib.GUIID_Squeezer && world.getTileEntity(x, y, z) instanceof TileEntitySqueezer)
-			return new GuiSqueezer(player.inventory, (TileEntitySqueezer) world.getTileEntity(x, y, z));
-		if(ID==Lib.GUIID_Fermenter && world.getTileEntity(x, y, z) instanceof TileEntityFermenter)
-			return new GuiFermenter(player.inventory, (TileEntityFermenter) world.getTileEntity(x, y, z));
-		if(ID==Lib.GUIID_Sorter && world.getTileEntity(x, y, z) instanceof TileEntityConveyorSorter)
-			return new GuiSorter(player.inventory, (TileEntityConveyorSorter) world.getTileEntity(x, y, z));
-		if(ID==Lib.GUIID_Refinery && world.getTileEntity(x, y, z) instanceof TileEntityRefinery)
-			return new GuiRefinery(player.inventory, (TileEntityRefinery) world.getTileEntity(x, y, z));
+		if(ID==Lib.GUIID_WoodenCrate && te instanceof TileEntityWoodenCrate)
+			return new GuiCrate(player.inventory, (TileEntityWoodenCrate) te);
+		if(ID==Lib.GUIID_Squeezer && te instanceof TileEntitySqueezer)
+			return new GuiSqueezer(player.inventory, (TileEntitySqueezer) te);
+		if(ID==Lib.GUIID_Fermenter && te instanceof TileEntityFermenter)
+			return new GuiFermenter(player.inventory, (TileEntityFermenter) te);
+		if(ID==Lib.GUIID_Sorter && te instanceof TileEntityConveyorSorter)
+			return new GuiSorter(player.inventory, (TileEntityConveyorSorter) te);
+		if(ID==Lib.GUIID_Refinery && te instanceof TileEntityRefinery)
+			return new GuiRefinery(player.inventory, (TileEntityRefinery) te);
 		//		if(ID==Lib.GUIID_Workbench && player.getCurrentEquippedItem()!=null && player.getCurrentEquippedItem().getItem() instanceof ItemDrill)
 		//			return new GuiDrill(player.inventory, world);
-		if(ID==Lib.GUIID_Workbench && world.getTileEntity(x, y, z) instanceof TileEntityModWorkbench)
-			return new GuiModWorkbench(player.inventory, (TileEntityModWorkbench) world.getTileEntity(x, y, z));
-		if(ID==Lib.GUIID_ArcFurnace && world.getTileEntity(x, y, z) instanceof TileEntityArcFurnace)
-			return new GuiArcFurnace(player.inventory, (TileEntityArcFurnace) world.getTileEntity(x, y, z));
+		if(ID==Lib.GUIID_Workbench && te instanceof TileEntityModWorkbench)
+			return new GuiModWorkbench(player.inventory, (TileEntityModWorkbench) te);
+		if(ID==Lib.GUIID_ArcFurnace && te instanceof TileEntityArcFurnace)
+			return new GuiArcFurnace(player.inventory, (TileEntityArcFurnace) te);
 		return null;
 	}
 
@@ -621,13 +632,13 @@ public class ClientProxy extends CommonProxy
 			//				if(!OreDictionary.getOres(minerals[i].recalculatedOres[j]).isEmpty())
 			//				{
 			//					ItemStack stackOre = OreDictionary.getOres(minerals[i].recalculatedOres[j]).get(0);
-			//					multiTables[curTable][i][1] += stackOre.getDisplayName()+" "+( Utils.formatDouble(minerals[i].recalculatedChances[j]*100,"#.00")+"%" )+(j<minerals[i].recalculatedOres.length-1?"\n":""); 
+			//					multiTables[curTable][i][1] += stackOre.getDisplayName()+" "+( Utils.formatDouble(minerals[i].recalculatedChances[j]*100,"#.00")+"%" )+(j<minerals[i].recalculatedOres.length-1?"\n":"");
 			//					totalLines++;
 			//				}
 			for(int j=0; j<minerals[i].oreOutput.length; j++)
 				if(minerals[i].oreOutput[j]!=null)
 				{
-					multiTables[curTable][i][1] += minerals[i].oreOutput[j].getDisplayName()+" "+( Utils.formatDouble(minerals[i].recalculatedChances[j]*100,"#.00")+"%" )+(j<minerals[i].oreOutput.length-1?"\n":""); 
+					multiTables[curTable][i][1] += minerals[i].oreOutput[j].getDisplayName()+" "+( Utils.formatDouble(minerals[i].recalculatedChances[j]*100,"#.00")+"%" )+(j<minerals[i].oreOutput.length-1?"\n":"");
 					totalLines++;
 				}
 			if(i<minerals.length-1 && totalLines+minerals[i+1].oreOutput.length>=13)
