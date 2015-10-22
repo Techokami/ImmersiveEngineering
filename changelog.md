@@ -14,7 +14,7 @@
 - added a statistic to track the distance travelled by Skyhook
 - added EE3 compat back in. All ingots as well as certain materials and the bullets have an EMC value now
 - added Thermal Expansion compat. Basically allowing Constantan to be made in the Smelter
-- added Shaders. These will allow you to change hte look of your revolvers (and other items in future). Think paletteswap
+- added Shaders. These will allow you to change the look of your revolvers (and other items in future). Think paletteswap
 - added treated wood as a separate block, added update methods accordingly. Fixes solidity issues and useability for carpenters and others
 - added Fluid Pipes! They transport fluids! (thanks @UnwrittenFun!)
 - added Fluid Pumps! They collect fluids and improve a pipe's throughput! (thanks @UnwrittenFun!)
@@ -22,6 +22,7 @@
 - added Nether- and Dense Ores support to the Arc Furnace
 - added a search function with spellchecking to the manual
 - added a headshot functionality to the revolver
+- added the Assembler, an IE autocrafting machine
 - changed wire rendering to be ISRBH, improving performance
 - changed a lot of internal handling of the Energy System:
 	- Wire Transferrates are now per tick. WIres can only have a certain amount of power go through them in a single tick

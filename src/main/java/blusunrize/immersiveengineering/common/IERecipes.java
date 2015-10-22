@@ -22,6 +22,7 @@ import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDevices;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDevices2;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
+import blusunrize.immersiveengineering.common.crafting.RecipeJerrycan;
 import blusunrize.immersiveengineering.common.crafting.RecipePotionBullets;
 import blusunrize.immersiveengineering.common.crafting.RecipeRevolver;
 import blusunrize.immersiveengineering.common.util.Utils;
@@ -142,6 +143,9 @@ public class IERecipes
 		addOredictRecipe(new ItemStack(IEContent.itemWireCoil,4,2), " I ","ASA"," I ", 'I',"ingotSteel", 'A',"ingotAluminum", 'S',"stickWood");
 		addOredictRecipe(new ItemStack(IEContent.itemWireCoil,4,3), " I ","ISI"," I ", 'I',new ItemStack(IEContent.itemMaterial,1,3), 'S',"stickWood");
 		addOredictRecipe(new ItemStack(IEContent.itemWireCoil,4,4), " I ","ISI"," I ", 'I',"ingotSteel", 'S',"stickWood");
+
+		GameRegistry.addRecipe(new RecipeJerrycan());
+
 
 		for(ItemStack container : Utils.getContainersFilledWith(new FluidStack(IEContent.fluidCreosote,1000)))
 			addOredictRecipe(new ItemStack(IEContent.blockTreatedWood,8,0), "WWW","WCW","WWW", 'W',"plankWood",'C',container);
@@ -304,21 +308,30 @@ public class IERecipes
 		oreOutputSecondaries.put("Uranium", new Object[]{"dustLead",.1f});
 		oreOutputSecondaries.put("Yellorium", new Object[]{"dustLead",.1f});
 		oreOutputSecondaries.put("Plutonium", new Object[]{"dustUranium",.1f});
-		Item i = GameRegistry.findItem("IC2", "itemOreIridium");
-		oreOutputSecondaries.put("Osmium", new Object[]{i,.01f});
+		Item item = GameRegistry.findItem("IC2", "itemOreIridium");
+		oreOutputSecondaries.put("Osmium", new Object[]{item,.01f});
 		oreOutputSecondaries.put("Iridium", new Object[]{"dustPlatium",.1f});
 		oreOutputSecondaries.put("FzDarkIron", new Object[]{"dustIron",.1f});
-		i = GameRegistry.findItem("Railcraft", "firestone.raw");
-		if(i!=null)
-			oreOutputModifier.put("Firestone", new ItemStack(i));
+		item = GameRegistry.findItem("Railcraft", "firestone.raw");
+		if(item!=null)
+			oreOutputModifier.put("Firestone", new ItemStack(item));
 		oreOutputSecondaries.put("Nikolite", new Object[]{Items.diamond,.025f});
 
 		CrusherRecipe.addRecipe(new ItemStack(Blocks.sand), "cobblestone", 3200);
 		CrusherRecipe.addRecipe(new ItemStack(Blocks.sand), "blockGlass", 3200);
 		CrusherRecipe.addRecipe(new ItemStack(Items.quartz,4), "blockQuartz", 3200);
-		addCrusherRecipe(new ItemStack(Items.blaze_powder,4), "rodBlaze", 1600, "dustSulfur",.5f);
+		CrusherRecipe.addRecipe(new ItemStack(Items.glowstone_dust,4), "glowstone", 3200);
+		addCrusherRecipe(new ItemStack(Items.blaze_powder,4), "rodBlaze", 3200, "dustSulfur",.5f);
+		addCrusherRecipe(new ItemStack(Items.dye,6,15), Items.bone, 3200);
 		addItemToOreDictCrusherRecipe("dustCoal",1, new ItemStack(Items.coal), 2400);
-		addItemToOreDictCrusherRecipe("dustWood",2, "logWood", 1600);
+		addItemToOreDictCrusherRecipe("dustWood",2, "logWood", 2400);
+		addItemToOreDictCrusherRecipe("dustObsidian",4, Blocks.obsidian, 6000);
+		for(int i=0; i<16; i++)
+		{
+			CrusherRecipe r = CrusherRecipe.addRecipe(new ItemStack(Items.string,4), new ItemStack(Blocks.wool,1,i), 3200);
+			if(i!=0)
+				r.addToSecondaryOutput(new ItemStack(Items.dye,1,15-i), .05f);
+		}
 	}
 	public static void postInitCrusherAndArcRecipes()
 	{
@@ -346,7 +359,6 @@ public class IERecipes
 					Float f = secondaries!=null&&secondaries.length>1&&secondaries[1] instanceof Float?(Float)secondaries[1]: 0;
 					addOreProcessingRecipe(out, ore, 6000, true, s, f);
 				}
-
 				out = arcOutputModifier.get(ore);
 				if(out==null)
 				{
@@ -356,6 +368,13 @@ public class IERecipes
 				}
 				if(out!=null)
 					addArcOreSmelting(out, ore);
+			}
+			else if(name.startsWith("gem"))
+			{
+				String ore = name.substring("gem".length());
+				ArrayList<ItemStack> dusts = OreDictionary.getOres("dust"+ore);
+				if(!dusts.isEmpty())
+					addCrusherRecipe(IEApi.getPreferredOreStack("dust"+ore), "gem"+ore, 6000, null,0);
 			}
 			else if(name.startsWith("dust"))
 			{
@@ -371,6 +390,9 @@ public class IERecipes
 					out = Utils.copyStackWithAmount(out, out.stackSize/2);
 				if(out!=null)
 					addArcRecipe(out, "dust"+ore, 100,512, null);
+
+				if(OreDictionary.doesOreNameExist("ingot"+ore))
+					addCrusherRecipe(IEApi.getPreferredOreStack("dust"+ore), "ingot"+ore, 3600, null,0);
 			}
 	}
 
@@ -408,21 +430,21 @@ public class IERecipes
 		if(dust==null)
 			return;
 		if(!OreDictionary.getOres("ore"+ore).isEmpty())
-			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "ore"+ore, 4000, secondary,chance);
+			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "ore"+ore, 6000, secondary,chance);
 		if(!OreDictionary.getOres("ingot"+ore).isEmpty())
-			addCrusherRecipe(Utils.copyStackWithAmount(dust, 1), "ingot"+ore, 2400);
+			addCrusherRecipe(Utils.copyStackWithAmount(dust, 1), "ingot"+ore, 3600);
 		if(!OreDictionary.getOres("oreNether"+ore).isEmpty())
-			addCrusherRecipe(Utils.copyStackWithAmount(dust, NetherOresHelper.getCrushingResult(ore)), "oreNether"+ore, 4000, secondary,chance,Blocks.netherrack,.15f);
+			addCrusherRecipe(Utils.copyStackWithAmount(dust, NetherOresHelper.getCrushingResult(ore)), "oreNether"+ore, 6000, secondary,chance,Blocks.netherrack,.15f);
 
 		//YAY GregTech!
 		if(!OreDictionary.getOres("oreNetherrack"+ore).isEmpty())
-			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreNetherrack"+ore, 4000, secondary,chance, new ItemStack(Blocks.netherrack),.15f);
+			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreNetherrack"+ore, 6000, secondary,chance, new ItemStack(Blocks.netherrack),.15f);
 		if(!OreDictionary.getOres("oreEndstone"+ore).isEmpty())
-			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreEndstone"+ore, 4000, secondary,chance, "dustEndstone",.5f);
+			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreEndstone"+ore, 6000, secondary,chance, "dustEndstone",.5f);
 		if(!OreDictionary.getOres("oreBlackgranite"+ore).isEmpty())
-			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreBlackgranite"+ore, 4000, secondary,chance, "dustGraniteBlack",.5f);
+			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreBlackgranite"+ore, 6000, secondary,chance, "dustGraniteBlack",.5f);
 		if(!OreDictionary.getOres("oreRedgranite"+ore).isEmpty())
-			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreRedgranite"+ore, 4000, secondary,chance, "dustGraniteRed",.5f);
+			addCrusherRecipe(Utils.copyStackWithAmount(dust, 2), "oreRedgranite"+ore, 6000, secondary,chance, "dustGraniteRed",.5f);
 	}
 	public static CrusherRecipe addItemToOreDictCrusherRecipe(String oreName, int outSize, Object input, int energy)
 	{

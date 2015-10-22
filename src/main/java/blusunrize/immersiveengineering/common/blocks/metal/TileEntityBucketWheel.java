@@ -11,7 +11,6 @@ import blusunrize.immersiveengineering.ImmersiveEngineering;
 import blusunrize.immersiveengineering.common.Config;
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.blocks.multiblocks.MultiblockBucketWheel;
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -21,6 +20,7 @@ public class TileEntityBucketWheel extends TileEntityMultiblockPart
 	public float rotation = 0;
 	public ItemStack[] digStacks = new ItemStack[8];
 	public boolean active = false;
+	public ItemStack particleStack;
 
 	@Override
 	public ItemStack getOriginalBlock()
@@ -36,7 +36,8 @@ public class TileEntityBucketWheel extends TileEntityMultiblockPart
 	{
 		super.readCustomNBT(nbt, descPacket);
 		facing = nbt.getInteger("facing");
-		rotation = nbt.getFloat("rotation");
+		float nbtRot = nbt.getFloat("rotation");
+		rotation = (Math.abs(nbtRot-rotation)>5*(float)Config.getDouble("excavator_speed"))?nbtRot:rotation; // avoid stuttering due to packet delays
 		NBTTagList invList = nbt.getTagList("digStacks", 10);
 		digStacks = new ItemStack[8];
 		for (int i=0; i<invList.tagCount(); i++)
@@ -47,6 +48,7 @@ public class TileEntityBucketWheel extends TileEntityMultiblockPart
 				this.digStacks[slot] = ItemStack.loadItemStackFromNBT(itemTag);
 		}
 		active = nbt.getBoolean("active");
+		particleStack = nbt.hasKey("particleStack")?ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("particleStack")):null;
 	}
 	@Override
 	public void writeCustomNBT(NBTTagCompound nbt, boolean descPacket)
@@ -65,6 +67,8 @@ public class TileEntityBucketWheel extends TileEntityMultiblockPart
 			}
 		nbt.setTag("digStacks", invList);
 		nbt.setBoolean("active", active);
+		if(particleStack!=null)
+			nbt.setTag("particleStack", particleStack.writeToNBT(new NBTTagCompound()));
 	}
 
 
@@ -78,6 +82,14 @@ public class TileEntityBucketWheel extends TileEntityMultiblockPart
 		{
 			rotation+=(float)Config.getDouble("excavator_speed");
 			rotation%=360;
+		}
+
+		if(worldObj.isRemote){
+			if(particleStack!=null)
+			{
+				ImmersiveEngineering.proxy.spawnBucketWheelFX(this, particleStack);
+				particleStack = null;
+			}
 		}
 	}
 
@@ -127,40 +139,8 @@ public class TileEntityBucketWheel extends TileEntityMultiblockPart
 	@Override
 	public boolean receiveClientEvent(int id, int arg)
 	{
-		try{
-			if(id<1)
-			{
-				this.active = arg==1;
-			}
-			else
-				if(FMLCommonHandler.instance().getEffectiveSide()==Side.CLIENT)
-				{
-					if(id==1)
-					{
-						Block block = Block.getBlockById(arg & 4095);
-						int meta = (arg>>12) & 255;
-						ItemStack ss = new ItemStack(block, 1, meta);
-						if(ss!=null)
-							ImmersiveEngineering.proxy.spawnBucketWheelFX(this, ss);
-					}
-					else if(id<10)
-					{
-						int target = id-2;
-						if(arg<=0)
-							this.digStacks[target] = null;
-						else
-						{
-							Block block = Block.getBlockById(arg & 4095);
-							int meta = (arg>>12) & 255;
-							ItemStack ss = new ItemStack(block, 1, meta);
-							this.digStacks[target] = ss;
-						}
-					}
-				}
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		if(id==0)
+			this.active = (arg==1);
 		return true;
 	}
 
@@ -194,6 +174,15 @@ public class TileEntityBucketWheel extends TileEntityMultiblockPart
 		else if(pos==19||pos==33)
 			return new float[]{facing==3?.25f:0,0,facing==5?.25f:0, facing==2?.75f:1,1,facing==4?.75f:1};
 		return new float[]{0,0,0,1,1,1};
+	}
+
+	@Override
+	public TileEntityBucketWheel master()
+	{
+		if(offset[0]==0&&offset[1]==0&&offset[2]==0)
+			return null;
+		TileEntity te = worldObj.getTileEntity(xCoord-offset[0], yCoord-offset[1], zCoord-offset[2]);
+		return te instanceof TileEntityBucketWheel?(TileEntityBucketWheel)te : null;
 	}
 
 }

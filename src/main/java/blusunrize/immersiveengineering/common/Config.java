@@ -4,7 +4,9 @@ import java.util.HashMap;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import blusunrize.immersiveengineering.ImmersiveEngineering;
 import blusunrize.immersiveengineering.api.IEApi;
+import blusunrize.immersiveengineering.common.blocks.metal.TileEntityConnectorLV;
 import blusunrize.immersiveengineering.common.util.IELogger;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
@@ -22,14 +24,21 @@ public class Config
 		Configuration config = new Configuration(event.getSuggestedConfigurationFile());
 		config.load();
 
-
-		Property propReGen = config.get("General", "RegenTransferValues", true);
-		if(propReGen.getBoolean())
+		double currentVersion = ImmersiveEngineering.VERSION_D;
+		Property propLastVersion = config.get("General","LastVersion",.54, "The last version of IE that was run in this instance. DO NOT CHANGE THIS, IT WILL BREAK THINGS.");
+		//		Property propReGen = config.get("General", "RegenTransferValues", true);
+		double lastVersion = propLastVersion.getDouble();
+		if(lastVersion<currentVersion)
 		{
-			IELogger.info("The Config on transfer rates of IE wires will be reset to the default.");
-//			propReGen.set(false);
-//			config.getCategory("General").remove("Cable transfer rates");
-//			config.getCategory("General").remove("Cable loss");
+			propLastVersion.set(currentVersion);
+			IELogger.info("The Previous Version of IE was outdated!");
+			if(lastVersion<.6)
+			{
+				IELogger.info("The Config on transfer rates of IE wires will be reset to the default.");
+				config.getCategory("general").remove("Cable transfer rates");
+				config.getCategory("general").remove("Cable loss");
+			}
+			config.getCategory("general").remove("Show Update News");
 		}
 
 		Property connectionValidation = config.get("General", "Validate Connections", false, "Drop connections with non-existing endpoints when loading the world. Use with care and backups and only when suspecting corrupted data. This option will check and load all connection endpoints and may slow down the world loading process.");
@@ -39,22 +48,22 @@ public class Config
 		}
 		setBoolean("validateConnections", connectionValidation.getBoolean());
 
-		Property cableProperty = config.get("General", "Cable transfer rates", new int[]{256,1024,4096,0,0,0}, "The transfer rates in RF/t for the cable tiers (copper, electrum, HV, Structural Rope & Cable(no transfer) )");
+		Property cableProperty = config.get("General", "Cable transfer rates", new int[]{2048,8192,32768,0,0}, "The transfer rates in RF/t for the cable tiers (copper, electrum, HV, Structural Rope & Cable(no transfer) )");
 		if(cableProperty.getIntList().length<5)
-			cableProperty.set(new int[]{256,1024,4096,0,0});
+			cableProperty.set(new int[]{2048,8192,32768,0,0});
 		setIntArray("cableTransferRate", cableProperty.getIntList());
 
-		cableProperty = config.get("General", "Cable loss", new double[]{.05,.025,.1,1,1,1}, "The percentage of power lost every 16 blocks of distance for the cable tiers (copper, electrum, HV, Structural Rope & Cable(no transfer) )");
+		cableProperty = config.get("General", "Cable loss", new double[]{.05,.025,.025,1,1}, "The percentage of power lost every 16 blocks of distance for the cable tiers (copper, electrum, HV, Structural Rope & Cable(no transfer) )");
 		if(cableProperty.getDoubleList().length<5)
 			cableProperty.set(new double[]{.05,.025,.1,1,1});
 		setDoubleArray("cableLossRatio", cableProperty.getDoubleList());
 
 		cableProperty = config.get("General", "Cable colouration", new int[]{0xd4804a,0xedad62,0x6f6f6f, 0x967e6d,0x6f6f6f}, "");
 		if(cableProperty.getIntList().length<5)
-			cableProperty.set(new int[]{0xb36c3f,0xeda045,0x6f6f6f, 0x967e6d,0x6f6f6f,0x141D3C});
+			cableProperty.set(new int[]{0xb36c3f,0xeda045,0x6f6f6f, 0x967e6d,0x6f6f6f});
 		setIntArray("cableColouration", cableProperty.getIntList());
 
-		cableProperty = config.get("General", "Cable length", new int[]{16,16,32,32,32,32}, "The maximum length cables can have. Copper and Electrum should be similar, Steel is meant for long range transport, Structural Rope & Cables are purely decorational");
+		cableProperty = config.get("General", "Cable length", new int[]{16,16,32,32,32}, "The maximum length cables can have. Copper and Electrum should be similar, Steel is meant for long range transport, Structural Rope & Cables are purely decorational");
 		if(cableProperty.getIntList().length<5)
 			cableProperty.set(new int[]{16,16,32,32,32});
 		setIntArray("cableLength", cableProperty.getIntList());
@@ -67,12 +76,20 @@ public class Config
 		setBoolean("disableHammerCrushing", config.get("General", "Disable Hammer Crushing", false, "Set this to true to completely disable the ore- and ingot-crushing recipes with the Engineers Hammer. Note that some of these disable automatically when other mods add the relevant dust (and by that probably a way to get them)").getBoolean());
 		setBoolean("forceHammerCrushing", config.get("General", "Force-Enable Hammer Crushing", false, "Set this to true to forefully enable the ore- and ingot-crushing recipes with the Engineers Hammer. This will override the disabling.").getBoolean());
 		setStringArray("preferredOres", config.get("General", "Preferred Ores", new String[]{"ImmersiveEngineering","ThermalFoundation"}, "A list of preferred Mod IDs that results of IE processes should stem from, aka which mod you want the copper to come from. This affects the ores dug by the excavator, as well as those crushing recipes that don't have associated IE items. This list is in oreder of priority.").getStringList());
+		setBoolean("showUpdateNews", config.get("General", "Show Update News", true, "Set this to false to hide the update news in the manual").getBoolean());
+
 
 		setBoolean("ic2compat", config.get("General", "IC2 Compatability", true, "Set this to false to prevent wires from accepting and outputting EU").getBoolean());
 		setBoolean("gregtechcompat", config.get("General", "GregTech Compatability", true, "Set this to false to prevent wires from outputting GregTech EU").getBoolean());
 		setInt("euConversion", config.get("General", "EU Conversion", 4, "The amount of RF that equal 1 EU. 4 by default, so 4RF == 1EU and .25EU == 1RF").getInt());
 
 		setInt("villager_engineer", config.get("General", "Villager ID: Engineer", 512, "The villager ID for the Engineer Villager. Change if it conflicts").getInt());
+
+		Property propConnectorInput = config.get("Machines", "Wire Connector Input", new int[]{256,1024,4096}, "In- and output rates of LV,MV and HV Wire Conenctors. This is independant of the transferrate of the wires.");
+		if(propConnectorInput.getIntList().length<3)
+			propConnectorInput.set(new int[]{256,1024,4096});
+		TileEntityConnectorLV.connectorInputValues = propConnectorInput.getIntList();
+		setIntArray("wireConnectorInput", propConnectorInput.getIntList());
 
 		setInt("capacitorLV_storage", config.get("Machines", "Capacitor LV: RF Storage", 100000, "The maximum amount of RF that can be stored in a low-voltage capacitor").getInt());
 		setInt("capacitorLV_input", config.get("Machines", "Capacitor LV: Input", 256, "The maximum amount of RF that can be input into a low-voltage capacitor (by IE net or other means)").getInt());
@@ -93,7 +110,7 @@ public class Config
 
 		setInt("heater_consumption", config.get("Machines", "Heater: RF per Heat", 8, "The RF per tick consumed to add one heat to a furnace. Creates up to 4 heat in the startup time and then 1 heat per tick to keep it running").getInt());
 		setInt("heater_speedupConsumption", config.get("Machines", "Heater: Speedup", 24, "The RF per tick consumed to double the speed of the furnace. Only happens if furnace is at maximum heat.").getInt());
-		setInt("crusher_consumption", config.get("Machines", "Crusher: Consumed", 80, "The RF per tick consumed by the Crusher. Will also directly influence the speed.").getInt());
+		setInt("crusher_consumption", config.get("Machines", "Crusher: Consumed", 120, "The RF per tick consumed by the Crusher. Will also directly influence the speed.").getInt());
 		setInt("squeezer_consumption", config.get("Machines", "Squeezer: Consumed", 10, "The RF per tick per item that the Squeezer will consume to create Plant Oil").getInt());
 		setInt("fermenter_consumption", config.get("Machines", "Fermenter: Consumed", 10, "The RF per tick per item that the Fermenter will consume to create Ethanol").getInt());
 		setInt("refinery_consumption", config.get("Machines", "Refinery: Consumed", 80, "The RF per tick the Refinery will consume to mix two fluids").getInt());
@@ -110,8 +127,9 @@ public class Config
 
 		setInt("arcfurnace_electrodeDamage", config.get("Machines", "Arc Furnace: Graphite Electrodes", 96000, "The maximum amount of damage Graphite Electrodes can take. While the furnace is working, electrodes sustain 1 damage per tick, so this is effectively the lifetime in ticks. The default value of 96000 makes them last for 8 consecutive ingame days").getInt());
 		setBoolean("arcfurnace_electrodeCrafting", config.get("Machines", "Arc Furnace: Craftable Blueprint", false, "Set this to true to make the blueprint for graphite electrodes craftable in addition to villager/dungeon loot").getBoolean());
-		
+
 		setInt("pump_consumption", config.get("Machines", "Fluid Pump: Consumed", 250, "The RF the Fluid Pump will consume to pick up a fluid block in the world").getInt());
+		setInt("assembler_consumption", config.get("Machines", "Assembler: Consumed", 80, "The RF the Assembler will consume to craft an item from a recipe").getInt());
 
 
 		setIntArray("ore_copper", config.get("OreGen", "Copper", new int[]{8, 40,72, 8,100}, "Generation config for Copper Ore. Parameters: Blocks per vein, lowest possible Y, highest possible Y, veins per chunk, chance for vein to spawn (out of 100). Set vein size to 0 to disable the generation").getIntList());

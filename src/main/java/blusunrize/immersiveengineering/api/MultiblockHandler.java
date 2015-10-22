@@ -31,6 +31,11 @@ public class MultiblockHandler
 	public static interface IMultiblock
 	{
 		/**
+		 * returns name of the Multiblock. This is used for the interdiction NBT system on the hammer, so this name /must/ be unique.
+		 */
+		public String getUniqueName();
+		
+		/**
 		 * Check whether the given block can be used to trigger the structure creation of the multiblock.<br>
 		 * Basically, a less resource-intensive preliminary check to avoid checking every structure.
 		 */
@@ -55,7 +60,8 @@ public class MultiblockHandler
 		/**
 		 * Use this to overwrite the rendering of a Multiblock's Component
 		 */
-		public boolean overwriteBlockRender(ItemStack stack);
+		@SideOnly(Side.CLIENT)
+		public boolean overwriteBlockRender(ItemStack stack, int iterator);
 
 		/**
 		 * returns the scale modifier to be applied when rendering the structure in the IE manual

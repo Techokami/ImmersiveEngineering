@@ -43,7 +43,8 @@ public class MultiblockSilo implements IMultiblock
 		return structure;
 	}
 	@Override
-	public boolean overwriteBlockRender(ItemStack stack)
+	@SideOnly(Side.CLIENT)
+	public boolean overwriteBlockRender(ItemStack stack, int iterator)
 	{
 		return false;
 	}
@@ -68,6 +69,12 @@ public class MultiblockSilo implements IMultiblock
 		TileEntityRendererDispatcher.instance.renderTileEntityAt(te, -.5D, -3.5D, -.5D, 0.0F);
 	}
 
+	@Override
+	public String getUniqueName()
+	{
+		return "IE:Silo";
+	}
+	
 	@Override
 	public boolean isBlockTrigger(Block b, int meta)
 	{

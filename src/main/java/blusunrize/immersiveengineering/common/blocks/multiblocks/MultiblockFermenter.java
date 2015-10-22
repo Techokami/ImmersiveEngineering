@@ -33,7 +33,8 @@ public class MultiblockFermenter implements IMultiblock
 		return structure;
 	}
 	@Override
-	public boolean overwriteBlockRender(ItemStack stack)
+	@SideOnly(Side.CLIENT)
+	public boolean overwriteBlockRender(ItemStack stack, int iterator)
 	{
 		return false;
 	}
@@ -66,6 +67,12 @@ public class MultiblockFermenter implements IMultiblock
 		return 12;
 	}
 
+	@Override
+	public String getUniqueName()
+	{
+		return "IE:Fermenter";
+	}
+	
 	@Override
 	public boolean isBlockTrigger(Block b, int meta)
 	{

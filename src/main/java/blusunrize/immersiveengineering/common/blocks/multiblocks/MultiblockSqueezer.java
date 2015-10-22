@@ -1,7 +1,5 @@
 package blusunrize.immersiveengineering.common.blocks.multiblocks;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
@@ -16,6 +14,8 @@ import blusunrize.immersiveengineering.common.blocks.BlockIEBase;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntitySqueezer;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class MultiblockSqueezer implements IMultiblock
 {
@@ -33,7 +33,8 @@ public class MultiblockSqueezer implements IMultiblock
 		return structure;
 	}
 	@Override
-	public boolean overwriteBlockRender(ItemStack stack)
+	@SideOnly(Side.CLIENT)
+	public boolean overwriteBlockRender(ItemStack stack, int iterator)
 	{
 		return false;
 	}
@@ -64,6 +65,12 @@ public class MultiblockSqueezer implements IMultiblock
 	public float getManualScale()
 	{
 		return 12;
+	}
+	
+	@Override
+	public String getUniqueName()
+	{
+		return "IE:Squeezer";
 	}
 	
 	@Override

@@ -35,6 +35,8 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 {
 	boolean inICNet=false;
 	public int facing=0;
+	private long lastTransfer = -1;
+	public static int[] connectorInputValues = {};
 
 	@Override
 	public void updateEntity()
@@ -115,12 +117,14 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 	{
 		super.writeCustomNBT(nbt, descPacket);
 		nbt.setInteger("facing", facing);
+		nbt.setLong("lastTransfer", lastTransfer);
 	}
 	@Override
 	public void readCustomNBT(NBTTagCompound nbt, boolean descPacket)
 	{
 		super.readCustomNBT(nbt, descPacket);
 		facing = nbt.getInteger("facing");
+		lastTransfer = nbt.getLong("lastTransfer");
 	}
 
 	@Override
@@ -184,6 +188,8 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 		int received = 0;
 		if(!worldObj.isRemote)
 		{
+			if(worldObj.getTotalWorldTime()==lastTransfer)
+				return 0;
 			ConcurrentSkipListSet<AbstractConnection> outputs = ImmersiveNetHandler.INSTANCE.getIndirectEnergyConnections(Utils.toCC(this), worldObj);
 			int powerLeft = Math.min(Math.min(getMaxOutput(),getMaxInput()), energy);
 			final int powerForSort = powerLeft;
@@ -213,14 +219,14 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 				for(AbstractConnection con : powerSorting.keySet())
 					if(con!=null && con.cableType!=null && toIIC(con.end, worldObj)!=null)
 					{
-						//					int output = powerLeft/outputs.size();
 						float prio = powerSorting.get(con)/(float)sum;
 						int output = (int)(powerForSort*prio);
 
 						int tempR = toIIC(con.end,worldObj).outputEnergy(Math.min(output,con.cableType.getTransferRate()), true, energyType);
 						int r = tempR;
-						tempR -= (int) Math.max(0, Math.floor(tempR*con.getAverageLossRate()));
+						tempR -= (int) Math.max(0, Math.floor(tempR*con.getPreciseLossRate(tempR,getMaxInput())));
 						toIIC(con.end, worldObj).outputEnergy(tempR, simulate, energyType);
+						
 						for(Connection sub : con.subConnections)
 						{
 							IELogger.debug("Sub Con"+sub.start+" to "+sub.end);
@@ -236,11 +242,14 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 							if(!simulate)
 								ImmersiveNetHandler.INSTANCE.getTransferedRates(worldObj.provider.dimensionId).put(sub,transferredPerCon);
 						}
+
 						received += r;
 						powerLeft -= r;
 						if(powerLeft<=0)
 							break;
 					}
+			if(!simulate)
+				lastTransfer = worldObj.getTotalWorldTime();
 		}
 		return received;
 	}
@@ -248,11 +257,11 @@ public class TileEntityConnectorLV extends TileEntityImmersiveConnectable implem
 
 	public int getMaxInput()
 	{
-		return WireType.COPPER.getTransferRate();
+		return connectorInputValues[0];
 	}
 	public int getMaxOutput()
 	{
-		return WireType.COPPER.getTransferRate();
+		return connectorInputValues[0];
 	}
 
 	@Optional.Method(modid = "IC2")

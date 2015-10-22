@@ -39,7 +39,8 @@ public class MultiblockBucketWheel implements IMultiblock
 		return structure;
 	}
 	@Override
-	public boolean overwriteBlockRender(ItemStack stack)
+	@SideOnly(Side.CLIENT)
+	public boolean overwriteBlockRender(ItemStack stack, int iterator)
 	{
 		return false;
 	}
@@ -65,6 +66,12 @@ public class MultiblockBucketWheel implements IMultiblock
 		TileEntityRendererDispatcher.instance.renderTileEntityAt(te, -.5D, 0.0D, -.5D, 0.0F);
 	}
 
+	@Override
+	public String getUniqueName()
+	{
+		return "IE:BucketWheel";
+	}
+	
 	@Override
 	public boolean isBlockTrigger(Block b, int meta)
 	{

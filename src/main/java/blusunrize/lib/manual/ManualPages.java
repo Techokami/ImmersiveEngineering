@@ -546,7 +546,6 @@ public abstract class ManualPages implements IManualPage
 				if(stack instanceof ItemStack[])
 				{
 					for(ItemStack subStack: (ItemStack[])stack)
-
 						if(subStack.getDisplayName().toLowerCase().contains(searchTag))
 							return true;
 				}
@@ -716,6 +715,7 @@ public abstract class ManualPages implements IManualPage
 			GL11.glTranslated(0, 0, -300);
 			GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 			GL11.glEnable(GL11.GL_BLEND);
+			RenderHelper.disableStandardItemLighting();
 
 			manual.fontRenderer.setUnicodeFlag(uni);
 			if(localizedText!=null&&!localizedText.isEmpty())
@@ -837,27 +837,45 @@ public abstract class ManualPages implements IManualPage
 			this.y=y;
 		}
 
+		public ArrayList<ItemStack> displayList;
 		public ItemStack getStack()
 		{
-			if(stack instanceof ItemStack)
-				return (ItemStack)stack;
-			else if(stack instanceof List && !((List)stack).isEmpty())
+			if(displayList==null)
 			{
-				int perm = (int) (System.nanoTime()/1000000000 % ((List)stack).size());
-				ItemStack itemStack = (ItemStack)((List)stack).get(perm);
-				if(itemStack.getItem().getHasSubtypes() && itemStack.getItemDamage()==OreDictionary.WILDCARD_VALUE)
+				displayList = new ArrayList<ItemStack>();
+				if(stack instanceof ItemStack)
 				{
-					ArrayList<ItemStack> list = new ArrayList<ItemStack>();
-					itemStack.getItem().getSubItems(itemStack.getItem(), itemStack.getItem().getCreativeTab(), list);
-					if(list.size()>0)
+					if(((ItemStack)stack).getItem().getHasSubtypes() && ((ItemStack)stack).getItemDamage()==OreDictionary.WILDCARD_VALUE)
 					{
-						int i = (int)(System.nanoTime()/(1000000000/list.size()))%list.size();
-						return list.get(i);
+						ArrayList<ItemStack> list = new ArrayList<ItemStack>();
+						((ItemStack)stack).getItem().getSubItems(((ItemStack)stack).getItem(), ((ItemStack)stack).getItem().getCreativeTab(), list);
+						if(list.size()>0)
+							displayList.addAll(list);
+					}
+					else
+						displayList.add((ItemStack)stack);
+				}
+				else if(stack instanceof List && !((List)stack).isEmpty())
+				{
+					for(ItemStack subStack : (List<ItemStack>)this.stack)
+					{
+						if(subStack.getItem().getHasSubtypes() && subStack.getItemDamage()==OreDictionary.WILDCARD_VALUE)
+						{
+							ArrayList<ItemStack> list = new ArrayList<ItemStack>();
+							subStack.getItem().getSubItems(subStack.getItem(), subStack.getItem().getCreativeTab(), list);
+							if(list.size()>0)
+								displayList.addAll(list);
+						}
+						else
+							displayList.add(subStack);
 					}
 				}
-				return itemStack;
 			}
-			return null;
+			if(displayList==null || displayList.isEmpty())
+				return null;
+
+			int perm = (int) (System.nanoTime()/1000000000 % displayList.size());
+			return displayList.get(perm);
 		}
 	}
 }

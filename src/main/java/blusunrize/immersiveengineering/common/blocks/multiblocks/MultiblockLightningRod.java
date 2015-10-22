@@ -1,7 +1,5 @@
 package blusunrize.immersiveengineering.common.blocks.multiblocks;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -11,6 +9,8 @@ import blusunrize.immersiveengineering.api.MultiblockHandler.IMultiblock;
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalMultiblocks;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityLightningRod;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class MultiblockLightningRod implements IMultiblock
 {
@@ -27,7 +27,8 @@ public class MultiblockLightningRod implements IMultiblock
 		return structure;
 	}
 	@Override
-	public boolean overwriteBlockRender(ItemStack stack)
+	@SideOnly(Side.CLIENT)
+	public boolean overwriteBlockRender(ItemStack stack, int iterator)
 	{
 		return false;
 	}
@@ -48,6 +49,12 @@ public class MultiblockLightningRod implements IMultiblock
 		return 12;
 	}
 
+	@Override
+	public String getUniqueName()
+	{
+		return "IE:LightningRod";
+	}
+	
 	@Override
 	public boolean isBlockTrigger(Block b, int meta)
 	{

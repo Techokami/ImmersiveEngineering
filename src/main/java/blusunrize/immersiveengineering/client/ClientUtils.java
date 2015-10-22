@@ -358,7 +358,7 @@ public class ClientUtils
 			((TileRenderIE)tesr).renderStatic(tile, Tessellator.instance, matrixT, new Matrix4());
 		}
 	}
-	
+
 	/**
 	 * A big "Thank you!" to AtomicBlom and Rorax for helping me figure this one out =P
 	 */
@@ -401,9 +401,8 @@ public class ClientUtils
 					if(offsetLighting==0 && tile.getWorldObj()!=null)
 						completeLight = calculateBlockLighting(side, tile.getWorldObj(), tile.getBlockType(), tile.xCoord,tile.yCoord,tile.zCoord, 1,1,1);
 
-
-
 					tes.setNormal(face.faceNormal.x, face.faceNormal.y, face.faceNormal.z);
+
 					for(int i=0; i<face.vertices.length; ++i)
 					{
 						int target = !invertFaces?i:(face.vertices.length-1-i);
@@ -439,7 +438,8 @@ public class ClientUtils
 							tes.setColorOpaque_F(r, g, b);
 						}
 
-						if((face.textureCoordinates != null) && (face.textureCoordinates.length > 0))
+
+						if(face.textureCoordinates!=null && face.textureCoordinates.length>0)
 						{
 							TextureCoordinate textureCoordinate = face.textureCoordinates[target];
 							tes.addVertexWithUV(vertexCopy.x, vertexCopy.y, vertexCopy.z, textureCoordinate.u, textureCoordinate.v);
@@ -539,7 +539,7 @@ public class ClientUtils
 						minV + sizeV * textureCoordinate.v
 						);
 			}
-			face.addFaceForRender(ClientUtils.tes());
+			face.addFaceForRender(ClientUtils.tes(),0);
 			for(int v=0; v<face.vertices.length; ++v)
 				face.textureCoordinates[v] = new TextureCoordinate(oldUVs[v].u,oldUVs[v].v);
 		}
@@ -706,6 +706,10 @@ public class ClientUtils
 
 	public static void drawHoveringText(List<String> list, int x, int y, FontRenderer font)
 	{
+		drawHoveringText(list, x,y, font, -1,-1);
+	}
+	public static void drawHoveringText(List<String> list, int x, int y, FontRenderer font, int xSize, int ySize)
+	{
 		if (!list.isEmpty())
 		{
 			boolean uni = ClientUtils.font().getUnicodeFlag();
@@ -717,17 +721,36 @@ public class ClientUtils
 			GL11.glDisable(GL11.GL_DEPTH_TEST);
 			int k = 0;
 			Iterator<String> iterator = list.iterator();
-			while (iterator.hasNext())
+			while(iterator.hasNext())
 			{
 				String s = iterator.next();
 				int l = font.getStringWidth(s);
-				if (l > k)
+				if(l > k)
 					k = l;
 			}
 
 			int j2 = x + 12;
 			int k2 = y - 12;
 			int i1 = 8;
+
+			boolean shift = false;
+			if(xSize>0 && j2 + k > xSize)
+			{
+				j2 -= 28 + k;
+				shift = true;
+			}
+			if(ySize>0 && k2 + i1 + 6 > ySize)
+			{
+				k2 = ySize - i1 - 6;
+				shift = true;
+			}
+			if(!shift && mc().currentScreen!=null)
+			{
+				if (j2 + k > mc().currentScreen.width)
+					j2 -= 28 + k;
+				if (k2 + i1 + 6 > mc().currentScreen.height)
+					k2 = mc().currentScreen.height - i1 - 6;
+			}
 
 			if (list.size() > 1)
 				i1 += 2 + (list.size() - 1) * 10;
@@ -781,7 +804,7 @@ public class ClientUtils
 		}
 		else
 		{
-			if(mX>x&&mX<x+w && mY>y&&mY<y+h)
+			if(mX>=x&&mX<x+w && mY>=y&&mY<y+h)
 			{
 				if(tank.getFluid()!=null && tank.getFluid().getFluid()!=null)
 					tooltip.add(tank.getFluid().getLocalizedName());
@@ -1557,7 +1580,25 @@ public class ClientUtils
 		}
 		return lightingInfo;
 	}
-
+	
+	public static boolean drawWorldBlock(IBlockAccess world, Block block, int x, int y, int z, int meta)
+	{
+		IIcon iBot = block.getIcon(0, meta);
+		IIcon iTop = block.getIcon(1, meta);
+		IIcon iNorth = block.getIcon(2, meta);
+		IIcon iSouth = block.getIcon(3, meta);
+		IIcon iWest = block.getIcon(4, meta);
+		IIcon iEast = block.getIcon(5, meta);
+		double[][] uv = {
+				{iBot.getMinU(),iBot.getMaxU(), iBot.getMinV(),iBot.getMaxV()},
+				{iTop.getMinU(),iTop.getMaxU(), iTop.getMinV(),iTop.getMaxV()},
+				{iNorth.getMinU(),iNorth.getMaxU(), iNorth.getMinV(),iNorth.getMaxV()},
+				{iSouth.getMinU(),iSouth.getMaxU(), iSouth.getMinV(),iSouth.getMaxV()},
+				{iWest.getMinU(),iWest.getMaxU(), iWest.getMinV(),iWest.getMaxV()},
+				{iEast.getMinU(),iEast.getMaxU(), iEast.getMinV(),iEast.getMaxV()}};
+		return drawWorldBlock(world, block, x, y, z, uv);
+	}
+	
 	public static boolean drawWorldBlock(IBlockAccess world, Block block, int x, int y, int z, double[][] uv)
 	{
 		Tessellator tes = tes();
@@ -1605,16 +1646,16 @@ public class ClientUtils
 			info = calculateBlockLighting(2, world, block, x,y,z, 1,1,1);
 			tes.setColorOpaque_F(info.colorRedTopLeft, info.colorGreenTopLeft, info.colorBlueTopLeft);
 			tes.setBrightness(info.brightnessTopLeft);
-			tes.addVertexWithUV(x+0, y+1, z+0, uv[2][0], uv[2][3]);
+			tes.addVertexWithUV(x+0, y+1, z+0, uv[2][1], uv[2][2]);
 			tes.setColorOpaque_F(info.colorRedBottomLeft, info.colorGreenBottomLeft, info.colorBlueBottomLeft);
 			tes.setBrightness(info.brightnessBottomLeft);
-			tes.addVertexWithUV(x+1, y+1, z+0, uv[2][1], uv[2][3]);
+			tes.addVertexWithUV(x+1, y+1, z+0, uv[2][0], uv[2][2]);
 			tes.setColorOpaque_F(info.colorRedBottomRight, info.colorGreenBottomRight, info.colorBlueBottomRight);
 			tes.setBrightness(info.brightnessBottomRight);
-			tes.addVertexWithUV(x+1, y+0, z+0, uv[2][1], uv[2][2]);
+			tes.addVertexWithUV(x+1, y+0, z+0, uv[2][0], uv[2][3]);
 			tes.setColorOpaque_F(info.colorRedTopRight, info.colorGreenTopRight, info.colorBlueTopRight);
 			tes.setBrightness(info.brightnessTopRight);
-			tes.addVertexWithUV(x+0, y+0, z+0, uv[2][0], uv[2][2]);
+			tes.addVertexWithUV(x+0, y+0, z+0, uv[2][1], uv[2][3]);
 			flag=true;
 		}
 		// SIDE 3
@@ -1623,16 +1664,16 @@ public class ClientUtils
 			info = calculateBlockLighting(3, world, block, x,y,z, 1,1,1);
 			tes.setColorOpaque_F(info.colorRedTopLeft, info.colorGreenTopLeft, info.colorBlueTopLeft);
 			tes.setBrightness(info.brightnessTopLeft);
-			tes.addVertexWithUV(x+0, y+1, z+1, uv[3][0], uv[3][3]);
+			tes.addVertexWithUV(x+0, y+1, z+1, uv[3][0], uv[3][2]);
 			tes.setColorOpaque_F(info.colorRedBottomLeft, info.colorGreenBottomLeft, info.colorBlueBottomLeft);
 			tes.setBrightness(info.brightnessBottomLeft);
-			tes.addVertexWithUV(x+0, y+0, z+1, uv[3][0], uv[3][2]);
+			tes.addVertexWithUV(x+0, y+0, z+1, uv[3][0], uv[3][3]);
 			tes.setColorOpaque_F(info.colorRedBottomRight, info.colorGreenBottomRight, info.colorBlueBottomRight);
 			tes.setBrightness(info.brightnessBottomRight);
-			tes.addVertexWithUV(x+1, y+0, z+1, uv[3][1], uv[3][2]);
+			tes.addVertexWithUV(x+1, y+0, z+1, uv[3][1], uv[3][3]);
 			tes.setColorOpaque_F(info.colorRedTopRight, info.colorGreenTopRight, info.colorBlueTopRight);
 			tes.setBrightness(info.brightnessTopRight);
-			tes.addVertexWithUV(x+1, y+1, z+1, uv[3][1], uv[3][3]);
+			tes.addVertexWithUV(x+1, y+1, z+1, uv[3][1], uv[3][2]);
 			flag=true;
 		}
 		// SIDE 4
@@ -1641,16 +1682,16 @@ public class ClientUtils
 			info = calculateBlockLighting(4, world, block, x,y,z, 1,1,1);
 			tes.setColorOpaque_F(info.colorRedTopLeft, info.colorGreenTopLeft, info.colorBlueTopLeft);
 			tes.setBrightness(info.brightnessTopLeft);
-			tes.addVertexWithUV(x+0, y+1, z+1, uv[4][1], uv[4][3]);
+			tes.addVertexWithUV(x+0, y+1, z+1, uv[4][1], uv[4][2]);
 			tes.setColorOpaque_F(info.colorRedBottomLeft, info.colorGreenBottomLeft, info.colorBlueBottomLeft);
 			tes.setBrightness(info.brightnessBottomLeft);
-			tes.addVertexWithUV(x+0, y+1, z+0, uv[4][0], uv[4][3]);
+			tes.addVertexWithUV(x+0, y+1, z+0, uv[4][0], uv[4][2]);
 			tes.setColorOpaque_F(info.colorRedBottomRight, info.colorGreenBottomRight, info.colorBlueBottomRight);
 			tes.setBrightness(info.brightnessBottomRight);
-			tes.addVertexWithUV(x+0, y+0, z+0, uv[4][0], uv[4][2]);
+			tes.addVertexWithUV(x+0, y+0, z+0, uv[4][0], uv[4][3]);
 			tes.setColorOpaque_F(info.colorRedTopRight, info.colorGreenTopRight, info.colorBlueTopRight);
 			tes.setBrightness(info.brightnessTopRight);
-			tes.addVertexWithUV(x+0, y+0, z+1, uv[4][1], uv[4][2]);
+			tes.addVertexWithUV(x+0, y+0, z+1, uv[4][1], uv[4][3]);
 			flag=true;
 		}
 		// SIDE 5
@@ -1659,16 +1700,16 @@ public class ClientUtils
 			info = calculateBlockLighting(5, world, block, x,y,z, 1,1,1);
 			tes.setColorOpaque_F(info.colorRedTopLeft, info.colorGreenTopLeft, info.colorBlueTopLeft);
 			tes.setBrightness(info.brightnessTopLeft);
-			tes.addVertexWithUV(x+1, y+0, z+1, uv[5][1], uv[5][2]);
+			tes.addVertexWithUV(x+1, y+0, z+1, uv[5][0], uv[5][3]);
 			tes.setColorOpaque_F(info.colorRedBottomLeft, info.colorGreenBottomLeft, info.colorBlueBottomLeft);
 			tes.setBrightness(info.brightnessBottomLeft);
-			tes.addVertexWithUV(x+1, y+0, z+0, uv[5][0], uv[5][2]);
+			tes.addVertexWithUV(x+1, y+0, z+0, uv[5][1], uv[5][3]);
 			tes.setColorOpaque_F(info.colorRedBottomRight, info.colorGreenBottomRight, info.colorBlueBottomRight);
 			tes.setBrightness(info.brightnessBottomRight);
-			tes.addVertexWithUV(x+1, y+1, z+0, uv[5][0], uv[5][3]);
+			tes.addVertexWithUV(x+1, y+1, z+0, uv[5][1], uv[5][2]);
 			tes.setColorOpaque_F(info.colorRedTopRight, info.colorGreenTopRight, info.colorBlueTopRight);
 			tes.setBrightness(info.brightnessTopRight);
-			tes.addVertexWithUV(x+1, y+1, z+1, uv[5][1], uv[5][3]);
+			tes.addVertexWithUV(x+1, y+1, z+1, uv[5][0], uv[5][2]);
 			flag=true;
 		}
 		return flag;

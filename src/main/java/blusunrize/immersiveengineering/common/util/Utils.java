@@ -14,10 +14,14 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
+import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
@@ -95,11 +99,18 @@ public class Utils
 		return -1;
 	}
 
-	public static FluidStack copyFluidStackWithAmount(FluidStack stack, int amount)
+	public static FluidStack copyFluidStackWithAmount(FluidStack stack, int amount, boolean stripPressure)
 	{
 		if(stack==null)
 			return null;
-		return new FluidStack(stack, amount);
+		FluidStack fs = new FluidStack(stack, amount);
+		if(stripPressure && fs.tag!=null && fs.tag.hasKey("pressurized"))
+		{
+			fs.tag.removeTag("pressurized");
+			if(fs.tag.hasNoTags())
+				fs.tag = null;
+		}
+		return fs;
 	}
 
 	public static ChunkCoordinates toCC(Object object)
@@ -326,6 +337,17 @@ public class Utils
 	{
 		return vec0.addVector(vec1.xCoord,vec1.yCoord,vec1.zCoord);
 	}
+	public static Vec3 rotateVector(Vec3 vec0, double angleX, double angleY, double angleZ)
+	{
+		Vec3 vec1 = Vec3.createVectorHelper(vec0.xCoord,vec0.yCoord,vec0.zCoord);
+		if(angleX!=0)
+			vec1.rotateAroundX((float)angleX);
+		if(angleY!=0)
+			vec1.rotateAroundY((float)angleY);
+		if(angleZ!=0)
+			vec1.rotateAroundZ((float)angleZ);
+		return vec1;
+	}
 
 	public static boolean isVecInEntityHead(EntityLivingBase entity, Vec3 vec)
 	{
@@ -362,7 +384,7 @@ public class Utils
 		NBTTagList list = new NBTTagList();
 		list.appendTag(expl);
 		tag.setTag("Explosions", list);
-		
+
 		return tag;
 	}
 
@@ -699,4 +721,33 @@ public class Utils
 		}
 		return false;
 	}
+
+	public static IRecipe findRecipe(InventoryCrafting crafting, World world)
+	{
+		for (int i=0; i<CraftingManager.getInstance().getRecipeList().size(); i++)
+		{
+			IRecipe irecipe = (IRecipe)CraftingManager.getInstance().getRecipeList().get(i);
+			if(irecipe.matches(crafting, world))
+				return irecipe;
+		}
+		return null;
+	}
+	public static class InventoryCraftingFalse extends InventoryCrafting
+	{
+		private static final Container nullContainer = new Container()
+		{
+			@Override
+			public void onCraftMatrixChanged(IInventory paramIInventory){}
+			@Override
+			public boolean canInteractWith(EntityPlayer p_75145_1_)
+			{
+				return false;
+			}
+		};
+		public InventoryCraftingFalse(int w, int h)
+		{
+			super(nullContainer, w, h);
+		}
+	}
+
 }

@@ -2,6 +2,7 @@ package blusunrize.immersiveengineering.common;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.oredict.OreDictionary;
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
+import blusunrize.immersiveengineering.ImmersiveEngineering;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler;
 import blusunrize.immersiveengineering.api.energy.ImmersiveNetHandler.Connection;
 import blusunrize.immersiveengineering.api.tool.IDrillHead;
@@ -34,13 +36,16 @@ import blusunrize.immersiveengineering.common.blocks.metal.TileEntityCrusher;
 import blusunrize.immersiveengineering.common.blocks.metal.TileEntityMultiblockPart;
 import blusunrize.immersiveengineering.common.items.ItemDrill;
 import blusunrize.immersiveengineering.common.util.IEAchievements;
+import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import blusunrize.immersiveengineering.common.util.Lib;
 import blusunrize.immersiveengineering.common.util.Utils;
+import blusunrize.immersiveengineering.common.util.network.MessageMineralListSync;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.ItemCraftedEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.WorldTickEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -108,6 +113,13 @@ public class EventHandler
 	}
 
 	@SubscribeEvent
+	public void onLogin(PlayerLoggedInEvent event)
+	{
+		if(!event.player.worldObj.isRemote)
+			ImmersiveEngineering.packetHandler.sendToAll(new MessageMineralListSync());
+	}
+
+	@SubscribeEvent
 	public void harvestCheck(PlayerEvent.HarvestCheck event)
 	{
 		if(event.block instanceof BlockIEBase && event.entityPlayer.getCurrentEquippedItem()!=null && event.entityPlayer.getCurrentEquippedItem().getItem().getToolClasses(event.entityPlayer.getCurrentEquippedItem()).contains(Lib.TOOL_HAMMER))
@@ -153,10 +165,31 @@ public class EventHandler
 	{
 		if(event.entityLiving.isCreatureType(EnumCreatureType.monster, false))
 		{
-			for(ISpawnInterdiction interdictor : interdictionTiles)
-				if((interdictor instanceof TileEntity && ((TileEntity)interdictor).getWorldObj().provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((TileEntity)interdictor).getDistanceFrom(event.entity.posX, event.entity.posY, event.entity.posZ)<=interdictor.getInterdictionRange())
-						||(interdictor instanceof Entity && ((Entity)interdictor).worldObj.provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((Entity)interdictor).getDistanceToEntity(event.entity)<=interdictor.getInterdictionRange()))
-					event.setCanceled(true);
+			Iterator<ISpawnInterdiction> it = interdictionTiles.iterator();
+			while(it.hasNext())
+			{
+				ISpawnInterdiction interdictor = it.next();
+				if(interdictor instanceof TileEntity)
+				{
+					if(((TileEntity)interdictor).isInvalid())
+					{
+						it.remove();
+						continue;
+					}
+					else if( ((TileEntity)interdictor).getWorldObj().provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((TileEntity)interdictor).getDistanceFrom(event.entity.posX, event.entity.posY, event.entity.posZ)<=interdictor.getInterdictionRangeSquared())
+						event.setResult(Event.Result.DENY);
+				}
+				else if(interdictor instanceof Entity)
+				{
+					if(((Entity)interdictor).isDead)
+					{
+						it.remove();
+						continue;
+					}
+					else if(((Entity)interdictor).worldObj.provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((Entity)interdictor).getDistanceSqToEntity(event.entity)<=interdictor.getInterdictionRangeSquared())
+						event.setResult(Event.Result.DENY);
+				}
+			}
 		}
 	}
 	@SubscribeEvent
@@ -166,10 +199,31 @@ public class EventHandler
 			return;
 		if(event.entityLiving.isCreatureType(EnumCreatureType.monster, false))
 		{
-			for(ISpawnInterdiction interdictor : interdictionTiles)
-				if((interdictor instanceof TileEntity && ((TileEntity)interdictor).getWorldObj().provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((TileEntity)interdictor).getDistanceFrom(event.entity.posX, event.entity.posY, event.entity.posZ)<=interdictor.getInterdictionRange())
-						||(interdictor instanceof Entity && ((Entity)interdictor).worldObj.provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((Entity)interdictor).getDistanceToEntity(event.entity)<=interdictor.getInterdictionRange()))
-					event.setResult(Event.Result.DENY);
+			Iterator<ISpawnInterdiction> it = interdictionTiles.iterator();
+			while(it.hasNext())
+			{
+				ISpawnInterdiction interdictor = it.next();
+				if(interdictor instanceof TileEntity)
+				{
+					if(((TileEntity)interdictor).isInvalid())
+					{
+						it.remove();
+						continue;
+					}
+					else if( ((TileEntity)interdictor).getWorldObj().provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((TileEntity)interdictor).getDistanceFrom(event.entity.posX, event.entity.posY, event.entity.posZ)<=interdictor.getInterdictionRangeSquared())
+						event.setResult(Event.Result.DENY);
+				}
+				else if(interdictor instanceof Entity)
+				{
+					if(((Entity)interdictor).isDead)
+					{
+						it.remove();
+						continue;
+					}
+					else if(((Entity)interdictor).worldObj.provider.dimensionId==event.entity.worldObj.provider.dimensionId && ((Entity)interdictor).getDistanceSqToEntity(event.entity)<=interdictor.getInterdictionRangeSquared())
+						event.setResult(Event.Result.DENY);
+				}
+			}
 		}
 	}
 
@@ -185,6 +239,22 @@ public class EventHandler
 	{
 		if(event.player!=null && OreDictionary.itemMatches(new ItemStack(IEContent.itemTool,1,0), event.crafting, true))
 			event.player.triggerAchievement(IEAchievements.craftHammer);
+
+		if(event.crafting!=null && ItemNBTHelper.hasKey(event.crafting, "jerrycanFilling"))
+		{
+			int drain = ItemNBTHelper.getInt(event.crafting, "jerrycanFilling");
+			for(int i=0;i<event.craftMatrix.getSizeInventory();i++)
+			{
+				ItemStack stackInSlot = event.craftMatrix.getStackInSlot(i);
+				if(stackInSlot!=null)
+					if(IEContent.itemJerrycan.equals(stackInSlot.getItem()) && ItemNBTHelper.hasKey(stackInSlot, "fluid"))
+					{
+						ItemNBTHelper.setInt(stackInSlot, "jerrycanDrain", drain);
+						break;
+					}
+			}
+			ItemNBTHelper.remove(event.crafting, "jerrycanFilling");	
+		}
 	}
 
 	@SubscribeEvent()

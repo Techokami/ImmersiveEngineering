@@ -42,7 +42,8 @@ public class MultiblockSheetmetalTank implements IMultiblock
 		return structure;
 	}
 	@Override
-	public boolean overwriteBlockRender(ItemStack stack)
+	@SideOnly(Side.CLIENT)
+	public boolean overwriteBlockRender(ItemStack stack, int iterator)
 	{
 		return false;
 	}
@@ -67,6 +68,12 @@ public class MultiblockSheetmetalTank implements IMultiblock
 		TileEntityRendererDispatcher.instance.renderTileEntityAt(te, -.5D, -2.5D, -.5D, 0.0F);
 	}
 
+	@Override
+	public String getUniqueName()
+	{
+		return "IE:SheetmetalTank";
+	}
+	
 	@Override
 	public boolean isBlockTrigger(Block b, int meta)
 	{

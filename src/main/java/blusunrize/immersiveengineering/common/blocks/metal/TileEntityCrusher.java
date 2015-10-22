@@ -9,10 +9,8 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -31,7 +29,6 @@ import blusunrize.immersiveengineering.common.util.IESound;
 import blusunrize.immersiveengineering.common.util.Utils;
 import cofh.api.energy.EnergyStorage;
 import cofh.api.energy.IEnergyReceiver;
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -50,6 +47,7 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 	@SideOnly(Side.CLIENT)
 	ItemStack particleStack;
 
+	@Override
 	public TileEntityCrusher master()
 	{
 		if(offset[0]==0&&offset[1]==0&&offset[2]==0)
@@ -206,15 +204,6 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 					else
 					{
 						ItemStack inputStack = inputs.get(0);
-
-						if(inputStack!=null)
-						{
-							Block b = Block.getBlockFromItem(inputStack.getItem());
-							int id = (b!=null&&b!=Blocks.air)?Block.getIdFromBlock(b): Item.getIdFromItem(inputStack.getItem());
-							int meta = inputStack.getItemDamage()+((b!=null&&b!=Blocks.air)?0:16);
-							worldObj.addBlockEvent(xCoord,yCoord,zCoord, this.getBlockType(), id,meta);
-						}
-
 						CrusherRecipe recipe = CrusherRecipe.findRecipe(inputStack);
 						if(recipe!=null)
 							this.process = recipe.energy;
@@ -302,6 +291,8 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 			inputs.clear();
 			for(int i=0;i<invList.tagCount();i++)
 				inputs.add( ItemStack.loadItemStackFromNBT(invList.getCompoundTagAt(i)));
+		} else {
+			particleStack = nbt.hasKey("particleStack")? ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("particleStack")): null;
 		}
 	}
 	@Override
@@ -322,6 +313,11 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 			for(ItemStack s : inputs)
 				invList.appendTag(s.writeToNBT(new NBTTagCompound()));
 			nbt.setTag("inputs", invList);
+		} else {
+			if(!inputs.isEmpty()){
+				NBTTagCompound t = inputs.get(0).writeToNBT(new NBTTagCompound());
+				nbt.setTag("particleStack", t);
+			}
 		}
 	}
 
@@ -404,29 +400,6 @@ public class TileEntityCrusher extends TileEntityMultiblockPart implements IEner
 		else if(pos==1||pos==3 || pos==16||pos==18||pos==24 || (pos>=31&&pos<=34))
 			return new float[]{0,0,0,1,.5f,1};
 		return new float[]{0,0,0,1,1,1};
-	}
-
-
-	@Override
-	public boolean receiveClientEvent(int id, int arg)
-	{
-		try{
-			if(FMLCommonHandler.instance().getEffectiveSide()==Side.CLIENT)
-			{
-				ItemStack ss = arg<16?new ItemStack(Block.getBlockById(id),1,arg): new ItemStack(Item.getItemById(id),1,arg-16);
-				if(ss!=null)
-				{
-					particleStack = ss;
-					active=true;
-					process=1;
-				}
-
-			}
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-		return true;
 	}
 
 	@Override
